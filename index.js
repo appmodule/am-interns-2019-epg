@@ -13,7 +13,6 @@ var app = express();
 
 //REST API
 var sqlAPI;
-//sve kategorije
 app.get('/category', function (req, res) {
   sqlAPI = "SELECT category_type FROM category";
   connection.query(sqlAPI, function (error, results, fields) {
@@ -29,7 +28,7 @@ app.get('/event', function (req, res) {
     let tstart = req.query.tstart;
     let tend = req.query.tend;
     let programi = myCache.get(req.query.epgID);
-    let zaSlanje = [];
+    let dataSend = [];
 
     if (typeof programi == 'undefined'){
       return res.send({error: 'MISSING ID'});
@@ -37,7 +36,7 @@ app.get('/event', function (req, res) {
 
     programi.forEach(function(element){
       if ((element.timestamp_end <= tend && element.timestamp_end >= tstart) || (element.timestamp_start >= tstart && element.timestamp_start <= tend)){
-        zaSlanje.push(element);
+        dataSend.push(element);
       }
     });
     let epg={
@@ -45,7 +44,7 @@ app.get('/event', function (req, res) {
       end:req.query.tend,
       channels:{
         epgID:req.query.channel_name,
-        events:zaSlanje
+        events:dataSend
       }
     }
     let err={
@@ -55,17 +54,17 @@ app.get('/event', function (req, res) {
     return res.send({ epg, error:err});
   }
 
-  let zaSlanje = [];
-  let kljucevi = myCache.keys();
+  let dataSend = [];
+  let allKeys = myCache.keys();
 
-  kljucevi.forEach(function(element){
-    zaSlanje.push(myCache.get(element));
+  allKeys.forEach(function(element){
+    dataSend.push(myCache.get(element));
   })
 
   let epg={
     channels:{
       epgID:req.query.channel_name,
-      events:zaSlanje
+      events:dataSend
     }
   }
   let err={

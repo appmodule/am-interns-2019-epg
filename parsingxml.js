@@ -43,9 +43,4 @@ fs.writeFileSync('/home/appmodule/Documents/EPG/public/jsonfiles/epg.json', JSON
     }
 });
 
-//export const jsonCh = jsonChannels;
-//export const jsonProg = jsonProgramms;
-
-//import {jsonChannels, jsonProgramms} from 'parsingxml.js';
-
 module.exports = {jsonChannels, jsonProgramms};

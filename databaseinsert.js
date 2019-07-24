@@ -6,8 +6,6 @@ var parsingxml = require('./parsingxml');
 
 var jsonProgramms = parsingxml.jsonProgramms;
 var jsonChannels = parsingxml.jsonChannels;
-
-//import {jsonCh as jsonChannels, jsonProg as jsonProgramms} from './parsingxml';
   
 var connection = mysql.createConnection({
     host: 'localhost',
@@ -111,12 +109,6 @@ connection.connect(function(connectionError){
               }
             });
         }
-        //console.log("probam ", sql);
-        // connection.query(sql, function(queryError, queryResult){
-        //     if(queryError){
-        //       throw queryError;
-        //     }
-        // });
       });
     });
   
@@ -324,7 +316,6 @@ Pozicionirati se u 'Putanja/do/projekta/public/images' otvoriti terminal i pokre
         + "VALUE ('" + startDate + "','" + stopDate + "','" + tz + "'," + startTimestamp + "," + stopTimestamp + ",'" + element["@channel"] + "','" + eventName + "','" + element["title"]["@lang"] + "','"
         + description + "','" + rating + "','" + starRating + "','" + icon + "','" + episodeNumber + "','" + subtitle + "','" + date + "','" + country + "','" + presenter + "','" + actor + "','" + director + "','" + slika + "');";
         
-        //console.log(sql);
         
         connection.query(sql, function(queryError, queryResult){
           if(queryError){
@@ -413,8 +404,5 @@ Pozicionirati se u 'Putanja/do/projekta/public/images' otvoriti terminal i pokre
     });
 
 });
-
-//export const myC = myCache;
-//import {myCache} from 'databaseinsert.js';
 
 module.exports = {myCache};
