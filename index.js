@@ -10,7 +10,7 @@ var myCache = new NodeCache({stdTTL: 60*60*24});
 
   
 
-var xmlData = fs.readFileSync('/home/appmodule/Documents/Projekat/public/xmlfiles/epg.xml').toString()
+var xmlData = fs.readFileSync('/home/appmodule/Documents/EPG/public/xmlfiles/epg.xml').toString()
 var parser = require('fast-xml-parser');
 var he = require('he');
 
@@ -57,7 +57,7 @@ if( parser.validate(xmlData) === true) { //optional (it'll return an object in c
 var tObj = parser.getTraversalObj(xmlData,options);
 var jsonObj = parser.convertToJson(tObj,options);
 
-// fs.writeFileSync('/home/appmodule/Documents/Projekat/public/jsonfiles/epg.json', JSON.stringify(jsonObj, null, 2), function(err)
+// fs.writeFileSync('/home/appmodule/Documents/EPG/public/jsonfiles/epg.json', JSON.stringify(jsonObj, null, 2), function(err)
 // {
 //     if (err){
 //         return console.log(err);
@@ -75,7 +75,7 @@ var jsonProgrami = jsonObj.tv.programme;
 //var objects = JSON.parse(jsonObj);
 //var filtered_objects = objects.filter(function(el) {return (el["@id"] != null);});
 
-// fs.writeFileSync('/home/appmodule/Documents/Projekat/public/jsonfiles/epgKANALI.json', JSON.stringify(filtered_objects, null, 2), function(err)
+// fs.writeFileSync('/home/appmodule/Documents/EPG/public/jsonfiles/epgKANALI.json', JSON.stringify(filtered_objects, null, 2), function(err)
 // {
 //     if (err){
 //         return console.log(err);
@@ -106,63 +106,85 @@ connection.connect(function(connectionError){
     }
     var sql;
 
-    // sql = "SELECT category_type AS kategorije FROM category;";
-    // var map = new HashMap();
-    // let l;
-    // connection.query(sql, function(queryError, queryResult){
-    //   if (queryError){
-    //     throw queryError;
-    //   }
-    //   queryResult.forEach(el => map.set(el["kategorije"].replaceAll("'","''"), el["kategorije"]));
+    sql = "SELECT category_type AS kategorije FROM category;";
+    var map = new HashMap();
+    let l;
+    connection.query(sql, function(queryError, queryResult){
+      if (queryError){
+        throw queryError;
+      }
+      queryResult.forEach(el => map.set(el["kategorije"].replaceAll("'","''"), el["kategorije"]));
 
-    //   jsonProgrami.forEach(function(elementPrvi){
-    //     if (typeof elementPrvi["category"] != 'undefined'){ //&& typeof elementPrvi["category"]["text"] != 'undefined'
-    //       if (Array.isArray(elementPrvi.category)){
-    //         elementPrvi.category.forEach(function (element){
-    //           l = element["text"].replaceAll("'","''");
-    //           l = l.replace("(lang=de)","");
-    //           if (!map.has(l)){
-    //             map.set(l, l);
-    //             sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
-    //             connection.query(sql, function(queryError, queryResult){
-    //               if (queryError){
-    //                 throw queryError;
-    //               }
-    //             });
-    //           }
-    //         });
-    //       }
-    //       else{
-    //         l = elementPrvi["category"]["text"].replaceAll("'","''");
-    //         l = l.replace("(lang=de)","");
-    //         if (!map.has(l)){
-    //           map.set(l, l);
-    //           sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
-    //           connection.query(sql, function(queryError, queryResult){
-    //             if (queryError){
-    //               throw queryError;
-    //             }
-    //           });
-    //         }
-    //       }
-    //     }
-    //   })
-    // })
-
-    jsonKanali.forEach(function(element) {
-        if (element["icon"] == undefined){
-            sql = "INSERT INTO channel(display_name, lang) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "');";
+      jsonProgrami.forEach(function(elementPrvi){
+        if (typeof elementPrvi["category"] != 'undefined'){ //&& typeof elementPrvi["category"]["text"] != 'undefined'
+          if (Array.isArray(elementPrvi.category)){
+            elementPrvi.category.forEach(function (element){
+              l = element["text"].replaceAll("'","''");
+              l = l.replace("(lang=de)","");
+              if (!map.has(l)){
+                map.set(l, l);
+                sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
+                connection.query(sql, function(queryError, queryResult){
+                  if (queryError){
+                    throw queryError;
+                  }
+                });
+              }
+            });
+          }
+          else{
+            l = elementPrvi["category"]["text"].replaceAll("'","''");
+            l = l.replace("(lang=de)","");
+            if (!map.has(l)){
+              map.set(l, l);
+              sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
+              connection.query(sql, function(queryError, queryResult){
+                if (queryError){
+                  throw queryError;
+                }
+              });
+            }
+          }
         }
-        else {
+      })
+    })
+
+    sql = "SELECT display_name FROM channel";
+    var map2 = new HashMap();
+    connection.query(sql, function(queryError, queryResult){
+      if (queryError){
+        throw queryError;
+      }
+      queryResult.forEach(function(element){
+        map2.set(element.display_name, element.display_name);
+      });
+  
+      jsonKanali.forEach(function(element) {
+        if (element["icon"] == undefined && (map2.has(element["@id"] == false))){
+            sql = "INSERT INTO channel(display_name, lang) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "');";
+            connection.query(sql, function(queryError, queryResult){
+              if(queryError){
+                throw queryError;
+              }
+            });
+        }
+        else if (!map2.has(element["@id"])){
             sql = "INSERT INTO channel(display_name, lang, icon) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "','" + element["icon"]["@src"] + "')";
+            connection.query(sql, function(queryError, queryResult){
+              if(queryError){
+                throw queryError;
+              }
+            });
         }
         //console.log("probam ", sql);
-        connection.query(sql, function(queryError, queryResult){
-            if(queryError){
-              throw queryError;
-            }
-        });
+        // connection.query(sql, function(queryError, queryResult){
+        //     if(queryError){
+        //       throw queryError;
+        //     }
+        // });
+      });
     });
+  
     
     //var sql;
     var date;
@@ -311,13 +333,13 @@ Pozicionirati se u 'Putanja/do/projekta/public/images' otvoriti terminal i pokre
       if(icon!=null){
         var opt = {
           url: icon,
-          dest: '/home/appmodule/Documents/Projekat/public/images'               
+          dest: '/home/appmodule/Documents/EPG/public/images'               
         }
         slika = opt.url.lastIndexOf("/");
         slika = opt.url.substring(slika, opt.url.size);
         opt.dest=opt.dest+'/'+slika[1]+'/'+slika[2];
         slika = opt.dest + slika;
-        downloadIMG(opt);
+        //downloadIMG(opt);
         
       }
 
@@ -633,7 +655,7 @@ app.get('/event/:id/image', function (req, res){
   });
 });
 
-//app.use(express.static('/home/appmodule/Documents/Projekat/public/images'));
+//app.use(express.static('/home/appmodule/Documents/EPG/public/images'));
 
 app.listen(3000, function (){
   console.log('Node app is running on port 3000');
