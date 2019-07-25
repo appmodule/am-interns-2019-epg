@@ -10,7 +10,7 @@ var jsonChannels = parsingxml.jsonChannels;
 var connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'password',
+    password: 'logitech',
     database: 'epg'
 });
 

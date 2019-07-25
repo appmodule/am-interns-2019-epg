@@ -39,13 +39,14 @@ class Database {
 var db= new Database({
     host: 'localhost',
     user: 'root',
-    password: 'password',
+    password: 'logitech',
     database: 'epg'
 });
 
 var myCache = new NodeCache({stdTTL: 60*60*24});
-var map = new HashMap()
-var map2=new HashMap()
+var map = new HashMap();
+var map2=new HashMap();
+var map3 = new HashMap();
 
 db.connection.connect(function(connectionError){
     if(connectionError){
@@ -115,7 +116,17 @@ db.connection.connect(function(connectionError){
             }
         });
     })
-    .then(()=>{
+    .then(()=>{ 
+        sql = "SELECT event_name, channel_display, timestamp_start, timestamp_end FROM channel_event;";
+        return db.query(sql)
+    })
+    .then(rows=> {
+        rows.forEach(function(element){
+          let tCombine = element.timestamp_start + element.timestamp_end;
+          map3.set(element.event_name + tCombine + element.channel_display, element.event_name + tCombine + element.channel_display);
+        })
+        //})
+        //.then(()=>{
         // var sql;
         var date;
         var episodeNumber;
@@ -317,13 +328,26 @@ db.connection.connect(function(connectionError){
         /////////////////////////////////////////////////////
         //////////////Variable validation END////////////////
         /////////////////////////////////////////////////////
+            let tSum = startTimestamp + stopTimestamp;
+
+            //eventName = eventName.replace("(lang=de)","");
+
+            eventNameHash = element["title"]["text"];
+            eventNameHash = eventNameHash.replace("(lang=de)","");
+
+            if (map3.has(eventNameHash + tSum + element["@channel"])){
+              return;
+            }
+
             sql = "INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)"
             + "VALUE ('" + startDate + "','" + stopDate + "','" + tz + "'," + startTimestamp + "," + stopTimestamp + ",'" + element["@channel"] + "','" + eventName + "','" + element["title"]["@lang"] + "','"
             + description + "','" + rating + "','" + starRating + "','" + icon + "','" + episodeNumber + "','" + subtitle + "','" + date + "','" + country + "','" + presenter + "','" + actor + "','" + director + "','" + slika + "');";
             
-            db.query(sql)
+            //map3.set(eventNameHash + tSum + element["@channel"], eventName + tSum + element["@channel"]);
+            db.query(sql).then(()=>{map3.set(eventNameHash + tSum + element["@channel"], eventName + tSum + element["@channel"])});
         })
     })
+  //})
     .then(()=>{//event-category
         jsonProgramms.forEach(function (element){
             var program_id;
