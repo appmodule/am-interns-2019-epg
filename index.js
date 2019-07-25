@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 var downloader = require('image-downloader');
 var NodeCache = require('node-cache');
 
-var databaseinsert = require('./databaseinsert');
+var databaseinsert = require('./database.js')//require('./databaseinsert');
 
 myCache = databaseinsert.myCache;
 
