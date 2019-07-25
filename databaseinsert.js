@@ -39,19 +39,19 @@ connection.connect(function(connectionError){
     }
     var sql;
 
-    sql = "SELECT category_type AS kategorije FROM category;";
+    sql = "SELECT category_type AS category FROM category;";
     var map = new HashMap();
     let l;
     connection.query(sql, function(queryError, queryResult){
       if (queryError){
         throw queryError;
       }
-      queryResult.forEach(el => map.set(el["kategorije"].replaceAll("'","''"), el["kategorije"]));
+      queryResult.forEach(el => map.set(el["category"].replaceAll("'","''"), el["category"]));
 
-      jsonProgramms.forEach(function(elementPrvi){
-        if (typeof elementPrvi["category"] != 'undefined'){ //&& typeof elementPrvi["category"]["text"] != 'undefined'
-          if (Array.isArray(elementPrvi.category)){
-            elementPrvi.category.forEach(function (element){
+      jsonProgramms.forEach(function(element){
+        if (typeof element["category"] != 'undefined'){ //&& typeof element["category"]["text"] != 'undefined'
+          if (Array.isArray(element.category)){
+            element.category.forEach(function (element){
               l = element["text"].replaceAll("'","''");
               l = l.replace("(lang=de)","");
               if (!map.has(l)){
@@ -66,7 +66,7 @@ connection.connect(function(connectionError){
             });
           }
           else{
-            l = elementPrvi["category"]["text"].replaceAll("'","''");
+            l = element["category"]["text"].replaceAll("'","''");
             l = l.replace("(lang=de)","");
             if (!map.has(l)){
               map.set(l, l);
@@ -93,27 +93,29 @@ connection.connect(function(connectionError){
       });
   
       jsonChannels.forEach(function(element) {
-        if (element["icon"] == undefined && (map2.has(element["@id"] == false))){
+        if (element["icon"] == undefined && !map2.has(element["@id"])){
             sql = "INSERT INTO channel(display_name, lang) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "');";
             connection.query(sql, function(queryError, queryResult){
               if(queryError){
                 throw queryError;
               }
+              map2.set(element["@id"]);
             });
         }
-        else if (!map2.has(element["@id"])){
+        else if (element['icon'] != undefined && !map2.has(element["@id"])){
             sql = "INSERT INTO channel(display_name, lang, icon) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "','" + element["icon"]["@src"] + "')";
             connection.query(sql, function(queryError, queryResult){
               if(queryError){
                 throw queryError;
               }
+              map2.set(element["@id"]);
             });
         }
       });
     });
   
     
-    //var sql;
+    // var sql;
     var date;
     var episodeNumber;
     var rating;
