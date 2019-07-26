@@ -47,6 +47,7 @@ var myCache = new NodeCache({stdTTL: 60*60*24});
 var map = new HashMap();
 var map2=new HashMap();
 var map3 = new HashMap();
+var map4 = new HashMap();
 
 db.connection.connect(function(connectionError){
     if(connectionError){
@@ -96,23 +97,11 @@ db.connection.connect(function(connectionError){
                 sql = "INSERT INTO channel(display_name, lang) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "');";
                 db.query(sql)
                 .then(()=>{map2.set(element["@id"])})
-                // connection.query(sql, function(queryError, queryResult){
-                //   if(queryError){
-                //     throw queryError;
-                //   }
-                //   map2.set(element["@id"]);
-                // });
             }
             else if (element['icon'] != undefined && !map2.has(element["@id"])){
                 sql = "INSERT INTO channel(display_name, lang, icon) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "','" + element["icon"]["@src"] + "')";
                 db.query(sql)
                 .then(()=>{map2.set(element["@id"])})
-                // connection.query(sql, function(queryError, queryResult){
-                //   if(queryError){
-                //     throw queryError;
-                //   }
-                //   map2.set(element["@id"]);
-                // });
             }
         });
     })
@@ -125,9 +114,7 @@ db.connection.connect(function(connectionError){
           let tCombine = element.timestamp_start + element.timestamp_end;
           map3.set(element.event_name + tCombine + element.channel_display, element.event_name + tCombine + element.channel_display);
         })
-        //})
-        //.then(()=>{
-        // var sql;
+
         var date;
         var episodeNumber;
         var rating;
@@ -268,10 +255,10 @@ db.connection.connect(function(connectionError){
             }
           var slika=null
     
-        /*
-        mkdir -p {0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
-        Position to 'path/to/file->/public/images' and enter the command in the terminal
-        */
+          /*
+          mkdir -p {0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
+          Position to 'path/to/file->/public/images' and enter the command in the terminal
+          */
           if(icon!=null){
             var opt = {
               url: icon,
@@ -281,8 +268,7 @@ db.connection.connect(function(connectionError){
             slika = opt.url.substring(slika, opt.url.size);
             opt.dest=opt.dest+'/'+slika[1]+'/'+slika[2];
             slika = opt.dest + slika;
-            //downloadIMG(opt);
-            downloadIMG(opt)
+            downloadIMG(opt);
           }
     
             eventName = element["title"]["text"].replaceAll("'","''");
@@ -335,7 +321,7 @@ db.connection.connect(function(connectionError){
             eventNameHash = element["title"]["text"];
             eventNameHash = eventNameHash.replace("(lang=de)","");
             eventNameHash = eventNameHash.replace('\\u','u');
-            
+
             if (map3.has(eventNameHash + tSum + element["@channel"])){
               return;
             }
@@ -349,45 +335,48 @@ db.connection.connect(function(connectionError){
         })
     })
   //})
-    .then(()=>{//event-category
-        jsonProgramms.forEach(function (element){
-            var program_id;
-            var kategorija_id;
-      
-            sql = "SELECT id FROM channel_event WHERE start = " + element["@start"].substring(0,14) + " AND end = " + element["@stop"].substring(0,14) + " AND channel_display = '" + element["@channel"] +"';";
-            db.query(sql)
-            .then(rows=>{
-                program_id = rows[0].id;
-            
-                if (typeof element["category"] != 'undefined'){
-        
-                  if (Array.isArray(element.category)){
-                    element.category.forEach(function (el){
-                      l = el["text"].replaceAll("'","''");
-                      l = l.replace("(lang=de)","");
-                      sql = "SELECT id FROM category WHERE category_type = '" + l + "';";
-                      db.query(sql)
-                      .then(rows=>{
-                            kategorija_id = rows[0].id;            
-                            sql = "INSERT INTO event_category(channel_event_id, category_id) VALUE (" + program_id + ", " + kategorija_id + ");";
-                            db.query(sql)                   
-                        });
-                    });
-                  }
-                  else{
-                    l = element["category"]["text"].replaceAll("'","''");
-                    l = l.replace("(lang=de)","");
-                    sql = "SELECT id FROM category WHERE category_type = '" + l + "';";
-                    db.query(sql)
-                    .then(rows=>{
-                      kategorija_id = rows[0].id;
-                      sql = "INSERT INTO event_category(channel_event_id, category_id) VALUE (" + program_id + ", " + kategorija_id + ");";        
-                      db.query(sql)
-                    });
-                  }
-                }
-            })
+    .then(()=>{
+      var eventName;
+      var eventNameHash;
+
+      sql = "SELECT channel_event_name AS event, category_name AS category FROM event_category;";
+      db.query(sql)
+      .then(rows=>{
+        rows.forEach(function(element){
+          map4.set(element.event + element.category, element.event + element.category);
         })
+        let l;
+        let tmp;
+        jsonProgramms.forEach(function(element){
+          if (typeof element["category"] == 'undefined'){
+            return;
+          }
+          eventName = element["title"]["text"].replace("(lang=de)","");
+          eventNameHash = eventName.replace("\\u","u");
+          eventName = eventName.replaceAll("'","''");
+
+          if (Array.isArray(element.category)){
+            element.category.forEach(function(el){
+              tmp = l = el["text"].replace("(lang=de)","");
+              if (!map4.has(eventNameHash + l)){
+                l = l.replaceAll("'","''");
+                sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE ('" + eventName + "', '" + l + "');";
+                map4.set(eventNameHash + tmp, eventNameHash + tmp)
+                db.query(sql);
+              }
+            })
+          }
+          else{
+            tmp = l = element["category"]["text"].replace("(lang=de)","");
+            if (!map4.has(eventNameHash + l)){
+              l = l.replaceAll("'","''");
+              sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE ('" + eventName + "', '" + l + "');";
+              map4.set(eventNameHash + tmp, eventNameHash + tmp);
+              db.query(sql);
+            }
+          }
+        })
+      })
     })
     .then(()=>{
         sql = "SELECT * FROM channel"
