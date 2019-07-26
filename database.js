@@ -39,7 +39,7 @@ class Database {
 var db= new Database({
     host: 'localhost',
     user: 'root',
-    password: 'logitech',
+    password: 'password',
     database: 'epg'
 });
 
@@ -334,7 +334,8 @@ db.connection.connect(function(connectionError){
 
             eventNameHash = element["title"]["text"];
             eventNameHash = eventNameHash.replace("(lang=de)","");
-
+            eventNameHash = eventNameHash.replace('\\u','u');
+            
             if (map3.has(eventNameHash + tSum + element["@channel"])){
               return;
             }
