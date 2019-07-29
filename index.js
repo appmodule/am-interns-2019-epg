@@ -8,14 +8,14 @@ var NodeCache = require('node-cache');
 var databaseinsert = require('./database.js')//require('./databaseinsert');
 
 myCache = databaseinsert.myCache;
-
+db=databaseinsert.db
 var app = express();
 
 //REST API
 var sqlAPI;
 app.get('/category', function (req, res) {
   sqlAPI = "SELECT category_type FROM category";
-  connection.query(sqlAPI, function (error, results, fields) {
+  db.connection.query(sqlAPI, function (error, results, fields) {
       if (error){
         throw error;
       }
@@ -77,7 +77,7 @@ app.get('/event', function (req, res) {
 app.get('/event/:id', function (req, res){
   let pom = req.params.id;
   sqlAPI = "SELECT * FROM channel_event WHERE id = " + pom;
-  connection.query(sqlAPI, function (error, results, fields) {
+  db.connection.query(sqlAPI, function (error, results, fields) {
     if (error){
       throw error;
     }
@@ -100,7 +100,7 @@ app.get('/event/:id', function (req, res){
 app.get('/event/:id/image', function (req, res){
   let pom = req.params.id;
   sqlAPI = "SELECT image FROM channel_event WHERE id = " + pom;
-  connection.query(sqlAPI, function (error, results, fields) {
+  db.connection.query(sqlAPI, function (error, results, fields) {
     if (error){
       throw error;
     }

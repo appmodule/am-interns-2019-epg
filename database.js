@@ -3,7 +3,7 @@ var NodeCache = require('node-cache');
 var HashMap = require('hashmap');
 
 var parsingxml = require('./parsingxml');
-var {db_host, db_user, db_password, db_name} = require('./config.js');
+var {db_host, db_user, db_password, db_name,image_folder} = require('./config.js');
 
 var jsonProgramms = parsingxml.jsonProgramms;
 var jsonChannels = parsingxml.jsonChannels;
@@ -263,12 +263,13 @@ db.connection.connect(function(connectionError){
           if(icon!=null){
             var opt = {
               url: icon,
-              dest: '/home/appmodule/Documents/EPG/public/images'               
+              dest: image_folder             
             }
             slika = opt.url.lastIndexOf("/");
             slika = opt.url.substring(slika, opt.url.size);
             opt.dest=opt.dest+'/'+slika[1]+'/'+slika[2];
             slika = opt.dest + slika;
+            str='.'+
             downloadIMG(opt);
           }
     
@@ -408,4 +409,4 @@ async function downloadIMG(option) {
     //return pom.fn;
 }
 
-module.exports = {myCache};
+module.exports = {myCache,db};
