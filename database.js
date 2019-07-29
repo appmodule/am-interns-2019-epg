@@ -3,6 +3,7 @@ var NodeCache = require('node-cache');
 var HashMap = require('hashmap');
 
 var parsingxml = require('./parsingxml');
+var {db_host, db_user, db_password, db_name} = require('./config.js');
 
 var jsonProgramms = parsingxml.jsonProgramms;
 var jsonChannels = parsingxml.jsonChannels;
@@ -37,10 +38,10 @@ class Database {
 }
 
 var db= new Database({
-    host: 'localhost',
-    user: 'root',
-    password: 'password',
-    database: 'epg'
+    host: db_host,
+    user: db_user,
+    password: db_password,
+    database: db_name
 });
 
 var myCache = new NodeCache({stdTTL: 60*60*24});

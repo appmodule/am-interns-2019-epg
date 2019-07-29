@@ -3,9 +3,10 @@ var he = require('he');
 var express = require('express');
 var fs = require('fs');
 var bodyParser = require('body-parser');
+var {xmlFileRead, jsonFileWrite} = require('./config.js');
 
 var app = express();
-var xmlData = fs.readFileSync('/home/appmodule/Documents/EPG/public/xmlfiles/epg.xml').toString()
+var xmlData = fs.readFileSync(xmlFileRead).toString()
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -36,7 +37,7 @@ var jsonObj = parser.convertToJson(tObj,options);
 var jsonChannels = jsonObj.tv.channel;
 var jsonProgramms = jsonObj.tv.programme;
 
-fs.writeFileSync('/home/appmodule/Documents/EPG/public/jsonfiles/epg.json', JSON.stringify(jsonObj, null, 2), function(err)
+fs.writeFileSync(jsonFileWrite, JSON.stringify(jsonObj, null, 2), function(err)
 {
     if (err){
         return console.log(err);

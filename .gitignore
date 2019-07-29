@@ -1,3 +1,6 @@
 node_modules
 public
 .env
+Dockerfile
+start.sh
+package.json
