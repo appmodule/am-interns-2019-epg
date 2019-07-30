@@ -1,6 +1,7 @@
 var mysql = require('mysql');
 var NodeCache = require('node-cache');
 var HashMap = require('hashmap');
+var downloader = require('image-downloader');
 
 var parsingxml = require('./parsingxml');
 var {db_host, db_user, db_password, db_name,image_folder} = require('./config.js');
@@ -400,10 +401,10 @@ db.connection.connect(function(connectionError){
 async function downloadIMG(option) {
     let pom;
     try {
-        pom = {fn, img} = await downloader.image(opt)
+        pom = {fn, img} = await downloader.image(option)
         //console.log(fn) // => /path/to/dest/image.jpg 
     } catch (e) {
-        //console.error(e)
+        console.log(e)
         //icon = null;
     }
     //return pom.fn;
