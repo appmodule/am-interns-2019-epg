@@ -3,7 +3,7 @@ var NodeCache = require('node-cache');
 var HashMap = require('hashmap');
 
 var parsingxml = require('./parsingxml');
-var {db_host, db_user, db_password, db_name,image_folder} = require('./config.js');
+var {db_host,db_user,db_password,db_name,image_folder}=require('./config.js');
 
 var jsonProgramms = parsingxml.jsonProgramms;
 var jsonChannels = parsingxml.jsonChannels;
@@ -254,7 +254,7 @@ db.connection.connect(function(connectionError){
                 actor = actor.replaceAll("'","''");
               }
             }
-          var slika=null
+          var img=null
     
           /*
           mkdir -p {0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
@@ -263,13 +263,12 @@ db.connection.connect(function(connectionError){
           if(icon!=null){
             var opt = {
               url: icon,
-              dest: image_folder             
+              dest: image_folder               
             }
-            slika = opt.url.lastIndexOf("/");
-            slika = opt.url.substring(slika, opt.url.size);
-            opt.dest=opt.dest+'/'+slika[1]+'/'+slika[2];
-            slika = opt.dest + slika;
-            str='.'+
+            img = opt.url.lastIndexOf("/");
+            img = opt.url.substring(img, opt.url.size);
+            opt.dest=opt.dest+'/'+img[1]+'/'+img[2];
+            img = opt.dest + img;
             downloadIMG(opt);
           }
     
@@ -330,7 +329,7 @@ db.connection.connect(function(connectionError){
 
             sql = "INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)"
             + "VALUE ('" + startDate + "','" + stopDate + "','" + tz + "'," + startTimestamp + "," + stopTimestamp + ",'" + element["@channel"] + "','" + eventName + "','" + element["title"]["@lang"] + "','"
-            + description + "','" + rating + "','" + starRating + "','" + icon + "','" + episodeNumber + "','" + subtitle + "','" + date + "','" + country + "','" + presenter + "','" + actor + "','" + director + "','" + slika + "');";
+            + description + "','" + rating + "','" + starRating + "','" + icon + "','" + episodeNumber + "','" + subtitle + "','" + date + "','" + country + "','" + presenter + "','" + actor + "','" + director + "','" + img + "');";
             
             //map3.set(eventNameHash + tSum + element["@channel"], eventName + tSum + element["@channel"]);
             db.query(sql).then(()=>{map3.set(eventNameHash + tSum + element["@channel"], eventName + tSum + element["@channel"])});

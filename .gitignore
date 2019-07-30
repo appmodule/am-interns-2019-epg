@@ -1,6 +1,6 @@
 node_modules
 public
+package.json
 .env
 Dockerfile
 start.sh
-package.json
