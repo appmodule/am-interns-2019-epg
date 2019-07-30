@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+
+  epg:
+    build:
+      context: ./DockerEPG/
+    ports: 
+      - 3003:3000
+    restart: always
+    volumes:
+      - ./DockerEPG/public/:/opt/epg/public
+    depends_on:
+      - mariadb
+
+  mariadb:
+    build:
+      context: ./mariadb/
+      args:
+      - IMPORT_NAME=epg
+    ports: 
+      - 3307:3306
+    restart: always
+    environment:
+      MYSQL_DATABASE: epg
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - ./DockerDB/db:/var/lib/mysql
+
+networks:
+  nginxproxy:
+    external: true

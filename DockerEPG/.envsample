@@ -1,0 +1,7 @@
+XML_TO_READ=./public/xmlfiles/epg.xml
+JSON_TO_WRITE=./public/jsonfiles/epg.json
+DB_HOST=mariadb
+DB_USER=root
+DB_PASSWORD=my-secret-pw
+DB_DATABASE=epg
+IMAGE_FOLDER=./public/images

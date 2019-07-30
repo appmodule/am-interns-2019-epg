@@ -1,0 +1,7 @@
+DockerEPG/node_modules
+DockerEPG/public
+DockerEPG/package.json
+DockerEPG/routes
+DockerEPG/views
+DockerEPG/bin
+DockerEPG/.env
