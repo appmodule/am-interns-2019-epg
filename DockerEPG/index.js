@@ -2,7 +2,7 @@ var fs = require('fs');
 var HashMap = require('hashmap');
 var express = require('express');
 var bodyParser = require('body-parser');
-var downloader = require('image-downloader');
+
 var NodeCache = require('node-cache');
 
 var databaseinsert = require('./database.js')//require('./databaseinsert');
