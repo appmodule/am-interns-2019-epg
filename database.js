@@ -67,6 +67,8 @@ db.connection.connect(function(connectionError){
                 element.category.forEach(function (element){
                   l = element["text"].replaceAll("'","''");
                   l = l.replace("(lang=de)","");
+                  l = l.replace("(lang=fr)","");
+                  l = l.replace("(lang=it)","");
                   if (!map.has(l)){
                     map.set(l, l);
                     sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
@@ -77,6 +79,8 @@ db.connection.connect(function(connectionError){
               else{
                 l = element["category"]["text"].replaceAll("'","''");
                 l = l.replace("(lang=de)","");
+                l = l.replace("(lang=fr)","");
+                l = l.replace("(lang=it)","");
                 if (!map.has(l)){
                   map.set(l, l);
                   sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
@@ -264,6 +268,8 @@ db.connection.connect(function(connectionError){
     
             eventName = element["title"]["text"].replaceAll("'","''");
             eventName = eventName.replace("(lang=de)","");
+            eventName = eventName.replace("(lang=it)","");
+            eventName = eventName.replace("(lang=fr)","");
     
             var yearStart=element["@start"].substring(0,4)
             var monthStart=element["@start"].substring(4,6)
@@ -311,6 +317,8 @@ db.connection.connect(function(connectionError){
 
             eventNameHash = element["title"]["text"];
             eventNameHash = eventNameHash.replace("(lang=de)","");
+            eventNameHash = eventNameHash.replace("(lang=it)","");
+            eventNameHash = eventNameHash.replace("(lang=fr)","");
             eventNameHash = eventNameHash.replace('\\u','u');
 
             if (map3.has(eventNameHash + tSum + element["@channel"])){
@@ -356,12 +364,17 @@ db.connection.connect(function(connectionError){
             return;
           }
           eventName = element["title"]["text"].replace("(lang=de)","");
+          eventName = eventName.replace("(lang=it)","");
+          eventName = eventName.replace("(lang=fr)","");
+
           eventNameHash = eventName.replace("\\u","u");
           eventName = eventName.replaceAll("'","''");
 
           if (Array.isArray(element.category)){
             element.category.forEach(function(el){
-              tmp = l = el["text"].replace("(lang=de)","");
+              l = el["text"].replace("(lang=de)","");
+              l = l.replace("(lang=it)","");
+              tmp = l = l.replace("(lang=fr)","");
               if (!map4.has(eventNameHash + l)){
                 l = l.replaceAll("'","''");
                 sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE ('" + eventName + "', '" + l + "');";
@@ -371,7 +384,9 @@ db.connection.connect(function(connectionError){
             })
           }
           else{
-            tmp = l = element["category"]["text"].replace("(lang=de)","");
+            l = element["category"]["text"].replace("(lang=de)","");
+            l = l.replace("(lang=it)","");
+            tmp = l = l.replace("(lang=fr)","");
             if (!map4.has(eventNameHash + l)){
               l = l.replaceAll("'","''");
               sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE ('" + eventName + "', '" + l + "');";
