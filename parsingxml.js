@@ -44,4 +44,48 @@ fs.writeFileSync(jsonFileWrite, JSON.stringify(jsonObj, null, 2), function(err)
     }
 });
 
+jsonProgramms.forEach((element)=>{
+    var yearStart=element["@start"].substring(0,4)
+    var monthStart=element["@start"].substring(4,6)
+    var dayStart=element["@start"].substring(6,8)
+    var hourStart=element["@start"].substring(8,10)
+    var minuteStart= element["@start"].substring(10,12)
+    var secondStart=element["@start"].substring(12,14)
+    var signStart=element["@start"].substring(15,16)
+    var timeZoneStart=element["@start"].substring(16,18)
+    var ms=0
+
+    var yearStop=element["@stop"].substring(0,4)
+    var monthStop=element["@stop"].substring(4,6)
+    var dayStop=element["@stop"].substring(6,8)
+    var hourStop=element["@stop"].substring(8,10)
+    var minuteStop= element["@stop"].substring(10,12)
+    var secondStop=element["@stop"].substring(12,14)
+    var signStop=element["@stop"].substring(15,16)
+    var timeZoneStop=element["@stop"].substring(16,18)
+
+    var startTimestamp= new Date(yearStart,monthStart,dayStart,hourStart,minuteStart,secondStart,ms).getTime()
+    var startDate=yearStart+"-"+monthStart+"-"+dayStart+" "+hourStart+":"+minuteStart+":"+secondStart
+    if(signStart==='+')
+        startTimestamp+=timeZoneStart*3600000//1h=3,600,000ms
+    else
+    startTimestamp-=timeZoneStart*3600000
+
+    var stopTimestamp= new Date(yearStop,monthStop,dayStop,hourStop,minuteStop,secondStop,ms).getTime()
+    var stopDate=yearStop+"-"+monthStop+"-"+dayStop+" "+hourStop+":"+minuteStop+":"+secondStop
+
+    if(signStop==='+')
+        stopTimestamp+=timeZoneStop*3600000
+    else
+        stopTimestamp-=timeZoneStop*3600000
+
+    var tz="GMT"+signStart+timeZoneStart
+
+    element["@start"]=startDate;
+    element["@stop"]=stopDate;
+    element.start_timestamp=startTimestamp;
+    element.stop_timestamp=stopTimestamp;
+    element.timezone=tz
+})
+
 module.exports = {jsonChannels, jsonProgramms};
