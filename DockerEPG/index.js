@@ -24,6 +24,7 @@ app.get('/category', function (req, res) {
 });
 
 app.get('/tv/event', function (req, res) {
+  res.setHeader("Access-Control-Allow-Origin","*")
   if (typeof req.query.time != 'undefined' || typeof req.query.epgID != 'undefined'){
     let tstart = req.query.time.substring(0, req.query.time.indexOf(","));
     let tend = req.query.time.substring(req.query.time.indexOf(",") + 1, req.query.time.size);
@@ -143,6 +144,7 @@ app.get('/tv/event', function (req, res) {
 // })
 
 app.get('/event/:id', function (req, res){
+  
   let pom = req.params.id;
   sqlAPI = "SELECT * FROM channel_event WHERE id = " + pom;
   db.connection.query(sqlAPI, function (error, results, fields) {
