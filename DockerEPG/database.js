@@ -254,64 +254,16 @@ db.connection.connect(function(connectionError){
                 actor = actor.replaceAll("'","''");
               }
             }
-          var img=null
-    
-          /*
-          mkdir -p {0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
-          Position to 'path/to/file->/public/images' and enter the command in the terminal
-          */
-          if(icon!=null){
-            var opt = {
-              url: icon,
-              dest: image_folder               
-            }
-            img = opt.url.lastIndexOf("/");
-            img = opt.url.substring(img, opt.url.size);
-            opt.dest=opt.dest+'/'+img[1]+'/'+img[2];
-            img = opt.dest + img;
-            downloadIMG(opt);
-          }
+
     
             eventName = element["title"]["text"].replaceAll("'","''");
             eventName = eventName.replace("(lang=de)","");
     
-            var yearStart=element["@start"].substring(0,4)
-            var monthStart=element["@start"].substring(4,6)
-            var dayStart=element["@start"].substring(6,8)
-            var hourStart=element["@start"].substring(8,10)
-            var minuteStart= element["@start"].substring(10,12)
-            var secondStart=element["@start"].substring(12,14)
-            var signStart=element["@start"].substring(15,16)
-            var timeZoneStart=element["@start"].substring(16,18)
-            var ms=0
-    
-            var yearStop=element["@stop"].substring(0,4)
-            var monthStop=element["@stop"].substring(4,6)
-            var dayStop=element["@stop"].substring(6,8)
-            var hourStop=element["@stop"].substring(8,10)
-            var minuteStop= element["@stop"].substring(10,12)
-            var secondStop=element["@stop"].substring(12,14)
-            var signStop=element["@stop"].substring(15,16)
-            var timeZoneStop=element["@stop"].substring(16,18)
-    
-            var startTimestamp= new Date(yearStart,monthStart,dayStart,hourStart,minuteStart,secondStart,ms).getTime()
-            //var startDate=new Date(yearStart,monthStart,dayStart,hourStart,minuteStart,secondStart,ms)
-            var startDate=yearStart+"-"+monthStart+"-"+dayStart+" "+hourStart+":"+minuteStart+":"+secondStart
-            if(signStart==='+')
-                startTimestamp+=timeZoneStart*3600000//1h=3,600,000ms
-            else
-            startTimestamp-=timeZoneStart*3600000
-    
-            var stopTimestamp= new Date(yearStop,monthStop,dayStop,hourStop,minuteStop,secondStop,ms).getTime()
-            //var stopDate=new Date(yearStop,monthStop,dayStop,hourStop,minuteStop,secondStop,ms)
-            var stopDate=yearStop+"-"+monthStop+"-"+dayStop+" "+hourStop+":"+minuteStop+":"+secondStop
-    
-            if(signStop==='+')
-                stopTimestamp+=timeZoneStop*3600000
-            else
-                stopTimestamp-=timeZoneStop*3600000
-    
-            var tz="GMT"+signStart+timeZoneStart
+            var startDate=element["@start"];
+            var stopDate=element["@stop"]
+            var startTimestamp=element.start_timestamp;
+            var stopTimestamp=element.stop_timestamp;
+            var tz=element.timezone
         /////////////////////////////////////////////////////
         //////////////Variable validation END////////////////
         /////////////////////////////////////////////////////
@@ -324,7 +276,25 @@ db.connection.connect(function(connectionError){
             eventNameHash = eventNameHash.replace('\\u','u');
 
             if (map3.has(eventNameHash + tSum + element["@channel"])){
-              return;
+              return;//continue
+            }
+
+            var img=null
+    
+            /*
+            mkdir -p {0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
+            Position to 'path/to/file->/public/images' and enter the command in the terminal
+            */
+            if(icon!=null){
+              var opt = {
+                url: icon,
+                dest: image_folder               
+              }
+              img = opt.url.lastIndexOf("/");
+              img = opt.url.substring(img, opt.url.size);
+              opt.dest=opt.dest+'/'+img[1]+'/'+img[2];
+              img = opt.dest + img;
+              downloadIMG(opt);
             }
 
             sql = "INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)"
@@ -384,9 +354,13 @@ db.connection.connect(function(connectionError){
         db.query(sql)
         .then(rows=>{
             rows.forEach(function(channel){
-                sql = "SELECT * FROM channel_event WHERE channel_display ='" + channel.display_name + "';";
+              sql = "SELECT channel_display,event_name AS tit, subtitle AS subtit, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL,  description AS `desc`,episode_number AS episodeNumber FROM channel_event WHERE channel_display ='" + channel.display_name + "';";  
+              //sql = "SELECT * FROM channel_event WHERE channel_display ='" + channel.display_name + "';";
                 db.query(sql)
                 .then(rows=>{
+                  rows.forEach(element => {
+                    element.lng=element.fin-element.str;
+                  });
                   myCache.set(channel.display_name, rows);
                 })
                 
