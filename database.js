@@ -369,9 +369,12 @@ db.connection.connect(function(connectionError){
         db.query(sql)
         .then(rows=>{
             rows.forEach(function(channel){
-                sql = "SELECT * FROM channel_event WHERE channel_display ='" + channel.display_name + "';";
+                sql = "SELECT channel_display, event_name AS tit, subtitle AS subtit, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL, description AS `desc`, episode_number AS episodeNumber FROM channel_event WHERE channel_display ='" + channel.display_name + "';";
                 db.query(sql)
                 .then(rows=>{
+                  rows.forEach(element => {
+                    element.lng = element.fin - element.str
+                  });
                   myCache.set(channel.display_name, rows);
                 })
                 

@@ -5,6 +5,11 @@ var fs = require('fs');
 var bodyParser = require('body-parser');
 var {xmlFileRead, jsonFileWrite} = require('./config.js');
 
+Number.prototype.padLeft = function(base,chr){
+    var  len = (String(base || 10).length - String(this).length)+1;
+    return len > 0? new Array(len).join(chr || '0')+this : this;
+}
+
 var app = express();
 var xmlData = fs.readFileSync(xmlFileRead).toString()
 
@@ -44,7 +49,10 @@ fs.writeFileSync(jsonFileWrite, JSON.stringify(jsonObj, null, 2), function(err)
     }
 });
 
+
+let programmeArr=[]
 jsonProgramms.forEach((element)=>{
+
     var yearStart=element["@start"].substring(0,4)
     var monthStart=element["@start"].substring(4,6)
     var dayStart=element["@start"].substring(6,8)
@@ -64,14 +72,19 @@ jsonProgramms.forEach((element)=>{
     var signStop=element["@stop"].substring(15,16)
     var timeZoneStop=element["@stop"].substring(16,18)
 
-    var startTimestamp= new Date(yearStart,monthStart,dayStart,hourStart,minuteStart,secondStart,ms).getTime()
+
+
+
+    var startTimestamp= new Date(yearStart,monthStart-1,dayStart,hourStart,minuteStart,secondStart,ms).getTime()
+    //var startDate=new Date(yearStart,monthStart,dayStart,hourStart,minuteStart,secondStart,ms)
     var startDate=yearStart+"-"+monthStart+"-"+dayStart+" "+hourStart+":"+minuteStart+":"+secondStart
     if(signStart==='+')
         startTimestamp+=timeZoneStart*3600000//1h=3,600,000ms
     else
     startTimestamp-=timeZoneStart*3600000
 
-    var stopTimestamp= new Date(yearStop,monthStop,dayStop,hourStop,minuteStop,secondStop,ms).getTime()
+    var stopTimestamp= new Date(yearStop,monthStop-1,dayStop,hourStop,minuteStop,secondStop,ms).getTime()
+    //var stopDate=new Date(yearStop,monthStop,dayStop,hourStop,minuteStop,secondStop,ms)
     var stopDate=yearStop+"-"+monthStop+"-"+dayStop+" "+hourStop+":"+minuteStop+":"+secondStop
 
     if(signStop==='+')
@@ -81,11 +94,60 @@ jsonProgramms.forEach((element)=>{
 
     var tz="GMT"+signStart+timeZoneStart
 
+    var startTimestamp= new Date(startTimestamp).getTime()
+
     element["@start"]=startDate;
     element["@stop"]=stopDate;
     element.start_timestamp=startTimestamp;
     element.stop_timestamp=stopTimestamp;
     element.timezone=tz
+    programmeArr.push(element)
 })
+let count=0
+for (let i=0;i<programmeArr.length-1;i++){
+    //console.log(programmeArr.length)
+    if(programmeArr[i]["@stop"]!=programmeArr[i+1]["@start"]
+        && programmeArr[i]["@channel"]==programmeArr[i+1]["@channel"]){
+        let name= programmeArr[i]["@channel"]
+         let element={
+            '@start':programmeArr[i]["@stop"],
+            '@stop':programmeArr[i+1]["@start"],
+            title:{
+                text:'No Channel EPG',
+                '@lang':'no'
+            },
+            '@channel':name,
+        }
+        let prevStop=programmeArr[i].stop_timestamp;//here
+        let nextStart=programmeArr[i+1].start_timestamp//here
+        element.start_timestamp=prevStop
+        if((nextStart-prevStop)>3600000){
+            element.stop_timestamp=prevStop+3600000
+            //element["@stop"]=
+            var d = new Date(element.stop_timestamp);
+            let dformat = [d.getFullYear(),
+                (d.getMonth()+1).padLeft(),
+               d.getDate().padLeft()
+               ].join('-') +' ' +
+              [d.getHours().padLeft(),
+               d.getMinutes().padLeft(),
+               d.getSeconds().padLeft()].join(':');
+            element["@stop"]=dformat;
+            //console.log(dformat);
+        }
+        else{
+            element.stop_timestamp=nextStart
+        }
+        
+        //element.stop_timestamp=programmeArr[i+count+1].start_timestamp
+        element.timezone=programmeArr[i].timezone//here
+
+        
+        console.log("start: "+element.start_timestamp+" stop: "+element.stop_timestamp)
+        programmeArr.splice(i+1,0,element)//here
+        //count=count+1
+    }
+}
+jsonProgramms=programmeArr
 
 module.exports = {jsonChannels, jsonProgramms};
