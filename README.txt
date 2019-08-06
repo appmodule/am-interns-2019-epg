@@ -34,6 +34,8 @@ All these libs are installed with the "npm install x" command.
 
 Parameters are stored in the .env file, change this according to your environment.
 
+If you want the run the programm without the parsing part, run it with parameter "parse".
+
 Position to 'path/to/file->/public/images' and enter the command in the terminal, it is used to create necessary folders for storing local images:
 mkdir -p {{0..9},{a..z},{A..Z}}/{{0..9},{a..z},{A..Z}}
 
