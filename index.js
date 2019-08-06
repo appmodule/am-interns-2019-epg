@@ -5,10 +5,24 @@ var bodyParser = require('body-parser');
 var downloader = require('image-downloader');
 var NodeCache = require('node-cache');
 
-var databaseinsert = require('./database.js')//require('./databaseinsert');
+var myCache;
+var db;
 
-myCache = databaseinsert.myCache;
-db=databaseinsert.db
+if (process.argv.includes("parse")){
+  var databaseinsert = require('./database.js');
+  myCache = databaseinsert.myCache;
+  db = databaseinsert.db;
+}
+else{
+  var databasepullonly = require('./databasepullonly.js');
+  myCache = databasepullonly.myCache;
+  db = databasepullonly.db;
+}
+
+//var databaseinsert = require('./database.js')//require('./databaseinsert');
+
+//myCache = databaseinsert.myCache;
+//db=databaseinsert.db
 var app = express();
 
 //REST API
@@ -24,6 +38,7 @@ app.get('/category', function (req, res) {
 });
 
 app.get('/tv/event', function (req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
   if (typeof req.query.time != 'undefined' || typeof req.query.epgID != 'undefined'){
     let tstart = req.query.time.substring(0, req.query.time.indexOf(","));
     let tend = req.query.time.substring(req.query.time.indexOf(",") + 1, req.query.time.size);

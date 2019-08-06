@@ -49,7 +49,7 @@ fs.writeFileSync(jsonFileWrite, JSON.stringify(jsonObj, null, 2), function(err)
     }
 });
 
-
+console.log("Parsing");
 let programmeArr=[]
 jsonProgramms.forEach((element)=>{
 
@@ -143,7 +143,7 @@ for (let i=0;i<programmeArr.length-1;i++){
         element.timezone=programmeArr[i].timezone//here
 
         
-        console.log("start: "+element.start_timestamp+" stop: "+element.stop_timestamp)
+        //console.log("start: "+element.start_timestamp+" stop: "+element.stop_timestamp)
         programmeArr.splice(i+1,0,element)//here
         //count=count+1
     }

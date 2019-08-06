@@ -2,6 +2,7 @@ var mysql = require('mysql');
 var NodeCache = require('node-cache');
 var HashMap = require('hashmap');
 var downloader = require('image-downloader');
+var Database = require('./databaseclass.js')
 
 var parsingxml = require('./parsingxml');
 var {db_host, db_user, db_password, db_name,image_folder} = require('./config.js');
@@ -14,31 +15,7 @@ String.prototype.replaceAll = function(search, replacement) {
     return target.split(search).join(replacement);
 };
 
-class Database {
-    constructor( config ) {
-        this.connection = mysql.createConnection( config );
-    }
-    query(sql) {
-        return new Promise( ( resolve, reject ) => {
-            this.connection.query( sql,( err, rows ) => {
-                if ( err )
-                    return reject( err );
-                resolve( rows );
-            } );
-        } );
-    }
-    close() {
-        return new Promise( ( resolve, reject ) => {
-            this.connection.end( err => {
-                if ( err )
-                    return reject( err );
-                resolve();
-            } );
-        } );
-    }
-}
-
-var db= new Database({
+var db = new Database({
     host: db_host,
     user: db_user,
     password: db_password,
