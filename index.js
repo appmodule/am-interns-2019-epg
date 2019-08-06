@@ -19,15 +19,11 @@ else{
   db = databasepullonly.db;
 }
 
-//var databaseinsert = require('./database.js')//require('./databaseinsert');
-
-//myCache = databaseinsert.myCache;
-//db=databaseinsert.db
 var app = express();
 
-//REST API
+//////////////////////////////REST API///////////////////////////////
 var sqlAPI;
-app.get('/category', function (req, res) {
+app.get('/category', function (req, res) {//NOT IN USE
   sqlAPI = "SELECT category_type FROM category";
   db.connection.query(sqlAPI, function (error, results, fields) {
       if (error){
@@ -38,16 +34,19 @@ app.get('/category', function (req, res) {
 });
 
 app.get('/tv/event', function (req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Origin","*")
   if (typeof req.query.time != 'undefined' || typeof req.query.epgID != 'undefined'){
+
+    //time is given in the 'startTime,endtime' format so we need to divide it
     let tstart = req.query.time.substring(0, req.query.time.indexOf(","));
     let tend = req.query.time.substring(req.query.time.indexOf(",") + 1, req.query.time.size);
+
+    //we also get a number of channels whose events we need to extract and they are in the format Channel1;Channel2;Channel3...
     let epgChannels = req.query.epgID;
     epgChannels = epgChannels.split(';');
     while(epgChannels.indexOf("") > 0){
       epgChannels.splice(epgChannels.indexOf(""), 1);
     }
-
 
     let epg = [];
     let err ={
@@ -59,14 +58,15 @@ app.get('/tv/event', function (req, res) {
 
     if (Array.isArray(epgChannels)){
       epgChannels.forEach(function(element){
-        let programi = myCache.get(element);
-        if (programi == undefined){
+        let events = myCache.get(element);//get events for this channel from the cache
+        if (events == undefined){
           return;
         }
         let dataSend = [];
 
-        programi.forEach(function(el){
-          if ((el.fin <= tend && el.fin >= tstart) || (el.str >= tstart && el.str <= tend)){
+        events.forEach(function(el){
+          //filtering events for the required timeperiod
+          if ((el.fin <= tend && el.fin >= tstart) || (el.str >= tstart && el.str <= tend)){ //fin=finish,str=start
             dataSend.push(el);
           }
         });
@@ -75,14 +75,14 @@ app.get('/tv/event', function (req, res) {
       })
     }
     else{
-      let programi = myCache.get(req.query.epgID);
+      let events = myCache.get(req.query.epgID);
       let dataSend = [];
 
-      if (typeof programi == 'undefined'){
+      if (typeof events == 'undefined'){
         return res.send({error: 'MISSING ID'});
       }
 
-      programi.forEach(function(element){
+      events.forEach(function(element){
         if ((element.fin <= tend && element.fin >= tstart) || (element.str >= tstart && element.str <= tend)){
           dataSend.push(element);
         }
@@ -93,93 +93,11 @@ app.get('/tv/event', function (req, res) {
 
     return res.send({ epg, error:err});
   }
+})
 
-  // let dataSend = [];
-  // let allKeys = myCache.keys();
 
-  // allKeys.forEach(function(element){
-  //   myCache.get(element).forEach(function(ev){
-  //     dataSend.push(ev);
-  //   })    
-  // })
-
-  // let channels=[{
-  //   epgID:req.query.epgID,
-  //   events:dataSend
-  // }]
-
-  // let epg=[{
-  //   start:req.query.tstart,
-  //   end:req.query.tend,
-  //   channels:channels
-  // }]
-  // let err={
-  //   code:'200',
-  //   desc:'OK'  
-  // }
-  // return res.send({ epg, error:err});
-});
-
-// app.post('/tv/event', function (req, res) {
-//   if (typeof req.body.tstart != 'undefined' && typeof req.body.tend != 'undefined' && typeof req.body.epgID != 'undefined'){
-//     let tstart = req.body.tstart;
-//     let tend = req.body.tend;
-//     let programi = myCache.get(req.body.epgID);
-//     let dataSend = [];
-
-//     if (typeof programi == 'undefined'){
-//       return res.send({error: 'MISSING ID'});
-//     }
-
-//     programi.forEach(function(element){
-//       if ((element.fin <= tend && element.fin >= tstart) || (element.str >= tstart && element.str <= tend)){
-//         dataSend.push(element);
-//       }
-//     });
-//     let channels=[{
-//       epgID:req.body.epgID,
-//       events:dataSend
-//     }]
-//     let epg=[{
-//       start:req.body.tstart,
-//       end:req.body.tend,
-//       channels:channels
-//     }]
-//     let err={
-//       code:'200',
-//       desc:'OK'  
-//     }
-//     return res.send({ epg, error:err});
-//   }
-
-//   let dataSend = [];
-//   let allKeys = myCache.keys();
-
-//   allKeys.forEach(function(element){
-//     element.forEach(function(ev){
-//       dataSend.push(myCache.get(ev));
-//     })
-    
-//   })
-
-//   let channels=[{
-//     epgID:req.body.epgID,
-//     events:dataSend
-//   }]
-
-//   let epg=[{
-//     start:req.body.tstart,
-//     end:req.body.tend,
-//     channels:channels
-//   }]
-//   let err={
-//     code:'200',
-//     desc:'OK'  
-//   }
-//   return res.send({ epg, error:err});
-// });
-
-app.get('/event/:id', function (req, res){
+app.get('/tv/event/:id', function (req, res){// not in use
+  
   let pom = req.params.id;
   sqlAPI = "SELECT * FROM channel_event WHERE id = " + pom;
   db.connection.query(sqlAPI, function (error, results, fields) {
@@ -202,7 +120,7 @@ app.get('/event/:id', function (req, res){
   });
 });
 
-app.get('/event/:id/image', function (req, res){
+app.get('/tv/event/:id/image', function (req, res){// not in use
   let pom = req.params.id;
   sqlAPI = "SELECT image FROM channel_event WHERE id = " + pom;
   db.connection.query(sqlAPI, function (error, results, fields) {
@@ -222,5 +140,3 @@ app.get('/event/:id/image', function (req, res){
 app.listen(3000, function (){
   console.log('Node app is running on port 3000');
 });
-
-

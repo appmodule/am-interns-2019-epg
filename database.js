@@ -2,20 +2,21 @@ var mysql = require('mysql');
 var NodeCache = require('node-cache');
 var HashMap = require('hashmap');
 var downloader = require('image-downloader');
-var Database = require('./databaseclass.js')
-
 var parsingxml = require('./parsingxml');
-var {db_host, db_user, db_password, db_name,image_folder} = require('./config.js');
+var Database=require('./databaseclass.js')
+var {db_host,db_user,db_password,db_name,image_folder}=require('./config.js');
 
 var jsonProgramms = parsingxml.jsonProgramms;
 var jsonChannels = parsingxml.jsonChannels;
-  
+/*This method is used string manipulation, it is needed for entering data into the database without any errors*/
 String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.split(search).join(replacement);
 };
 
-var db = new Database({
+
+
+var db= new Database({
     host: db_host,
     user: db_user,
     password: db_password,
@@ -23,11 +24,14 @@ var db = new Database({
 });
 
 var myCache = new NodeCache({stdTTL: 60*60*24});
-var map = new HashMap();
-var map2=new HashMap();
-var map3 = new HashMap();
-var map4 = new HashMap();
+var map = new HashMap();//cat
+var map2=new HashMap();//channel
+var map3 = new HashMap();//event
+var map4 = new HashMap();//event_category reserved for future purposes
 
+
+
+/*This section fetches existing data and inserts new data into the base */
 db.connection.connect(function(connectionError){
     if(connectionError){
       throw connectionError;
@@ -35,17 +39,16 @@ db.connection.connect(function(connectionError){
     let sql="SELECT category_type AS category FROM category;"
 
     let l;
-    db.query(sql)
+    db.query(sql)//category insertion
     .then(rows=>{
         rows.forEach(el => map.set(el["category"].replaceAll("'","''"), el["category"]));
         jsonProgramms.forEach(function(element){
-            if (typeof element["category"] != 'undefined'){ //&& typeof element["category"]["text"] != 'undefined'
-              if (Array.isArray(element.category)){
+            if (typeof element["category"] != 'undefined'){ 
+              if (Array.isArray(element.category)){ //in json when there are multiple categories it is given as an array
+                                                    //when it is just one category it is not an array
                 element.category.forEach(function (element){
                   l = element["text"].replaceAll("'","''");
                   l = l.replace("(lang=de)","");
-                  l = l.replace("(lang=fr)","");
-                  l = l.replace("(lang=it)","");
                   if (!map.has(l)){
                     map.set(l, l);
                     sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
@@ -56,8 +59,6 @@ db.connection.connect(function(connectionError){
               else{
                 l = element["category"]["text"].replaceAll("'","''");
                 l = l.replace("(lang=de)","");
-                l = l.replace("(lang=fr)","");
-                l = l.replace("(lang=it)","");
                 if (!map.has(l)){
                   map.set(l, l);
                   sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
@@ -67,15 +68,16 @@ db.connection.connect(function(connectionError){
             }
         })
     })
-    .then(()=>{
+    .then(()=>{ //fetches all channels
         sql = "SELECT display_name FROM channel"
         return db.query(sql);
     })
     .then(rows=>{
-        rows.forEach(function(element){
+        rows.forEach(function(element){//creates a hashmap of (existing) channels(in the database)
             map2.set(element.display_name, element.display_name);
         });
         jsonChannels.forEach(function(element) {
+          //some channels have icons, some don't. that is why we check whether or not it exists
             if (element["icon"] == undefined && !map2.has(element["@id"])){
                 sql = "INSERT INTO channel(display_name, lang) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "');";
                 db.query(sql)
@@ -88,12 +90,12 @@ db.connection.connect(function(connectionError){
             }
         });
     })
-    .then(()=>{ 
+    .then(()=>{ //getting events from the database
         sql = "SELECT event_name, channel_display, timestamp_start, timestamp_end FROM channel_event;";
         return db.query(sql)
     })
     .then(rows=> {
-        rows.forEach(function(element){
+        rows.forEach(function(element){//filling the hashmap for events
           let tCombine = element.timestamp_start + element.timestamp_end;
           map3.set(element.event_name + tCombine + element.channel_display, element.event_name + tCombine + element.channel_display);
         })
@@ -236,24 +238,16 @@ db.connection.connect(function(connectionError){
                 actor = actor.replaceAll("'","''");
               }
             }
-          var img=null
-    
-          /*
-          mkdir -p {0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,z,y,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
-          Position to 'path/to/file->/public/images' and enter the command in the terminal
-          */
+
     
             eventName = element["title"]["text"].replaceAll("'","''");
             eventName = eventName.replace("(lang=de)","");
-            eventName = eventName.replace("(lang=it)","");
-            eventName = eventName.replace("(lang=fr)","");
-
+    
             var startDate=element["@start"];
             var stopDate=element["@stop"]
             var startTimestamp=element.start_timestamp;
             var stopTimestamp=element.stop_timestamp;
             var tz=element.timezone
-
         /////////////////////////////////////////////////////
         //////////////Variable validation END////////////////
         /////////////////////////////////////////////////////
@@ -261,24 +255,27 @@ db.connection.connect(function(connectionError){
 
             eventNameHash = element["title"]["text"];
             eventNameHash = eventNameHash.replace("(lang=de)","");
-            eventNameHash = eventNameHash.replace("(lang=it)","");
-            eventNameHash = eventNameHash.replace("(lang=fr)","");
             eventNameHash = eventNameHash.replace('\\u','u');
 
             if (map3.has(eventNameHash + tSum + element["@channel"])){
-              return;
+              return;//continue
             }
 
+            var img=null
+    
+            /*
+            position to ./public/images
+            mkdir -p {{0..9},{a..z},{A..Z}}/{{0..9},{a..z},{A..Z}} and enter the command in the terminal
+            */
             if(icon!=null){
               var opt = {
                 url: icon,
-                dest: image_folder             
+                dest: image_folder //determines the destination by the first 2 characters to get a 2 level folder tree for search optimisation        
               }
               img = opt.url.lastIndexOf("/");
               img = opt.url.substring(img, opt.url.size);
-              opt.dest=opt.dest+'/'+img[1]+'/'+img[2];
+              opt.dest=opt.dest+'/'+img[1]+'/'+img[2]; 
               img = opt.dest + img;
-              str='.'+
               downloadIMG(opt);
             }
 
@@ -290,8 +287,7 @@ db.connection.connect(function(connectionError){
             db.query(sql).then(()=>{map3.set(eventNameHash + tSum + element["@channel"], eventName + tSum + element["@channel"])});
         })
     })
-  //})
-    .then(()=>{
+    .then(()=>{//this can be used to help filter shows by category (this wasn't in the specification)
       var eventName;
       var eventNameHash;
 
@@ -308,17 +304,12 @@ db.connection.connect(function(connectionError){
             return;
           }
           eventName = element["title"]["text"].replace("(lang=de)","");
-          eventName = eventName.replace("(lang=it)","");
-          eventName = eventName.replace("(lang=fr)","");
-
           eventNameHash = eventName.replace("\\u","u");
           eventName = eventName.replaceAll("'","''");
 
           if (Array.isArray(element.category)){
             element.category.forEach(function(el){
-              l = el["text"].replace("(lang=de)","");
-              l = l.replace("(lang=it)","");
-              tmp = l = l.replace("(lang=fr)","");
+              tmp = l = el["text"].replace("(lang=de)","");
               if (!map4.has(eventNameHash + l)){
                 l = l.replaceAll("'","''");
                 sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE ('" + eventName + "', '" + l + "');";
@@ -328,9 +319,7 @@ db.connection.connect(function(connectionError){
             })
           }
           else{
-            l = element["category"]["text"].replace("(lang=de)","");
-            l = l.replace("(lang=it)","");
-            tmp = l = l.replace("(lang=fr)","");
+            tmp = l = element["category"]["text"].replace("(lang=de)","");
             if (!map4.has(eventNameHash + l)){
               l = l.replaceAll("'","''");
               sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE ('" + eventName + "', '" + l + "');";
@@ -346,11 +335,12 @@ db.connection.connect(function(connectionError){
         db.query(sql)
         .then(rows=>{
             rows.forEach(function(channel){
-                sql = "SELECT channel_display, event_name AS tit, subtitle AS subtit, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL, description AS `desc`, episode_number AS episodeNumber FROM channel_event WHERE channel_display ='" + channel.display_name + "';";
+              sql = "SELECT channel_display,event_name AS tit, subtitle AS subtit, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL,  description AS `desc`,episode_number AS episodeNumber FROM channel_event WHERE channel_display ='" + channel.display_name + "';";  
+              //sql = "SELECT * FROM channel_event WHERE channel_display ='" + channel.display_name + "';";
                 db.query(sql)
                 .then(rows=>{
                   rows.forEach(element => {
-                    element.lng = element.fin - element.str
+                    element.lng=element.fin-element.str;
                   });
                   myCache.set(channel.display_name, rows);
                 })
@@ -367,10 +357,9 @@ async function downloadIMG(option) {
         pom = {fn, img} = await downloader.image(option)
         //console.log(fn) // => /path/to/dest/image.jpg 
     } catch (e) {
-        console.log(e)
+        //console.error(e)
         //icon = null;
     }
     //return pom.fn;
 }
-
 module.exports = {myCache,db};
