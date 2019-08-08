@@ -95,6 +95,69 @@ app.get('/tv/event', function (req, res) {
   }
 })
 
+app.get('/tv/event/:key', function (req, res) {
+  res.setHeader("Access-Control-Allow-Origin","*")
+  if (typeof req.params.key != 'undefined' && typeof req.query.time != 'undefined'){
+    let tstart = req.query.time.substring(0, req.query.time.indexOf(","));
+    let tend = req.query.time.substring(req.query.time.indexOf(",") + 1, req.query.time.size);
+    let key = req.params.key;
+
+    let epgChannels = [];
+    let epg = [];
+    let err ={
+      code: '200',
+      desc: 'OK'  
+    }
+
+    var allKeys = myCache.keys();
+    if (Array.isArray(allKeys)){
+      allKeys.forEach(function(element){
+        epgChannels.push(element);
+      })
+    }
+    else{
+      epgChannels.push(allKeys[0]);
+    }
+
+    let channels = [];
+
+    if (Array.isArray(epgChannels)){
+      epgChannels.forEach(function(element){
+        let events = myCache.get(element);
+        let dataSend = [];
+
+        events.forEach(function(el){
+          if (((el.fin <= tend && el.fin >= tstart) || (el.str >= tstart && el.str <= tend)) && el.tit.includes(key)){ //fin=finish,str=start
+            dataSend.push(el);
+            el.tit.match('^' + key + '|' + key + '$|.' + key + '.');
+          }
+        });
+        if (dataSend.length > 0){
+          channels.push({epgID: element, events: dataSend});
+        }
+      })
+    }
+    else{
+      let events = myCache.get(epgChannels[0]);
+      let dataSend = [];
+
+      if (typeof events == 'undefined'){
+        return res.send({error: 'EMPTY CHANNEL'});
+      }
+
+      events.forEach(function(element){
+        if (((element.fin <= tend && element.fin >= tstart) || (element.str >= tstart && element.str <= tend)) && el.tit.contains(key)){
+          dataSend.push(element);
+        }
+      });
+      channels.push({epgID: req.query.epgID, events: dataSend})
+    }
+    epg.push({start: tstart, end: tend, channels: channels});
+
+    return res.send({ epg, error:err});
+  }
+})
+
 
 app.get('/tv/event/:id', function (req, res){// not in use
   
