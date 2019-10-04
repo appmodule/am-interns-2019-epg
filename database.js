@@ -166,7 +166,9 @@ db.connection.connect(function(connectionError){
             }
             else{
               subtitle = element["sub-title"]["text"];
-              subtitle = subtitle.replaceAll("'","''");
+              if (typeof subtitle === 'string') {
+                subtitle = subtitle.replaceAll("'","''");
+              }
             }
     
             if (element["star-rating"] == undefined){
@@ -239,10 +241,10 @@ db.connection.connect(function(connectionError){
               }
             }
 
-    
+            element["title"]["text"] = element["title"]["text"].toString()
             eventName = element["title"]["text"].replaceAll("'","''");
             eventName = eventName.replace("(lang=de)","");
-    
+            
             var startDate=element["@start"];
             var stopDate=element["@stop"]
             var startTimestamp=element.start_timestamp;
@@ -254,8 +256,11 @@ db.connection.connect(function(connectionError){
             let tSum = startTimestamp + stopTimestamp;
 
             eventNameHash = element["title"]["text"];
-            eventNameHash = eventNameHash.replace("(lang=de)","");
-            eventNameHash = eventNameHash.replace('\\u','u');
+
+            if (typeof eventNameHash === 'string') {
+              eventNameHash = eventNameHash.replace("(lang=de)","");
+              eventNameHash = eventNameHash.replace('\\u','u');
+            }
 
             if (map3.has(eventNameHash + tSum + element["@channel"])){
               return;//continue
@@ -280,11 +285,37 @@ db.connection.connect(function(connectionError){
             }
 
             sql = "INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)"
-            + "VALUE ('" + startDate + "','" + stopDate + "','" + tz + "'," + startTimestamp + "," + stopTimestamp + ",'" + element["@channel"] + "','" + eventName + "','" + element["title"]["@lang"] + "','"
-            + description + "','" + rating + "','" + starRating + "','" + icon + "','" + episodeNumber + "','" + subtitle + "','" + date + "','" + country + "','" + presenter + "','" + actor + "','" + director + "','" + img + "');";
             
+            + "VALUE (" + mysql.escape(startDate) + "," + mysql.escape(stopDate) + "," + mysql.escape(tz) + "," + mysql.escape(startTimestamp) + ","
+            + mysql.escape(stopTimestamp) + "," + mysql.escape(element["@channel"]) + ","
+            + mysql.escape(eventName || 'Unknown') + "," + mysql.escape(element["title"]["@lang"]) + ","
+            + mysql.escape(description) + "," + mysql.escape(rating) + "," + mysql.escape(starRating) + ","
+            + mysql.escape(icon) + "," + mysql.escape(episodeNumber) + "," + mysql.escape(subtitle) + "," + mysql.escape(date) + "," 
+            + mysql.escape(country) + "," + mysql.escape(presenter) + "," + mysql.escape(actor) + "," 
+            + mysql.escape(director) + "," + mysql.escape(img) + ");";
+            
+            // + "VALUE ('" + mysql.escape(startDate) + "','" + mysql.escape(stopDate) + "','" + tz + "'," + mysql.escape(startTimestamp) + ","
+            // + mysql.escape(stopTimestamp) + ",'" + mysql.escape(element["@channel"]) + "','"
+            // + mysql.escape(eventName) + "','" + mysql.escape(element["title"]["@lang"]) + "','"
+            // + mysql.escape(description) + "','" + mysql.escape(rating) + "','" + mysql.escape(starRating) + "','" 
+            // + mysql.escape(icon) + "','" + mysql.escape(episodeNumber) + "','" + mysql.escape(subtitle) + "','" + mysql.escape(date) + "','" 
+            // + mysql.escape(country) + "','" + mysql.escape(presenter) + "','" + mysql.escape(actor) + "','" 
+            // + mysql.escape(director) + "','" + mysql.escape(img) + "');";
+            
+            // const values = [ startDate, stopDate, tz, startTimestamp, stopTimestamp, element["@channel"], 
+            //   eventName, element["title"]["@lang"], 
+            //   description, rating, starRating, icon, episodeNumber, subtitle, date, country,
+            //   presenter, actor, director, img
+            // ]
             //map3.set(eventNameHash + tSum + element["@channel"], eventName + tSum + element["@channel"]);
-            db.query(sql).then(()=>{map3.set(eventNameHash + tSum + element["@channel"], eventName + tSum + element["@channel"])});
+            // console.log(sql)
+            db.query(sql)
+            .then(()=>{
+              map3.set(eventNameHash + tSum + element["@channel"], eventName + tSum + element["@channel"])
+            })
+            .catch(e => {
+              console.log(e)
+            });
         })
     })
     .then(()=>{//this can be used to help filter shows by category (this wasn't in the specification)
@@ -299,11 +330,21 @@ db.connection.connect(function(connectionError){
         })
         let l;
         let tmp;
-        jsonProgramms.forEach(function(element){
+        jsonProgramms.forEach(function(element){ 
           if (typeof element["category"] == 'undefined'){
             return;
           }
-          eventName = element["title"]["text"].replace("(lang=de)","");
+          if (element["title"] && element["title"]["text"]) {
+            // if (typeof element["title"]["text"] !== 'string') {
+            //   eventName = element["title"]["text"]
+            // } else {
+            //   eventName = element["title"]["text"].replace("(lang=de)","");
+            // }
+            eventName = element["title"]["text"].toString()
+            eventName = eventName.replace("(lang=de)","");
+          } else {
+            eventName = 'No title'
+          }
           eventNameHash = eventName.replace("\\u","u");
           eventName = eventName.replaceAll("'","''");
 
@@ -312,7 +353,7 @@ db.connection.connect(function(connectionError){
               tmp = l = el["text"].replace("(lang=de)","");
               if (!map4.has(eventNameHash + l)){
                 l = l.replaceAll("'","''");
-                sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE ('" + eventName + "', '" + l + "');";
+                sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE (" + mysql.escape(eventName) + ", " + mysql.escape(l) + ");";
                 map4.set(eventNameHash + tmp, eventNameHash + tmp)
                 db.query(sql);
               }
@@ -322,7 +363,7 @@ db.connection.connect(function(connectionError){
             tmp = l = element["category"]["text"].replace("(lang=de)","");
             if (!map4.has(eventNameHash + l)){
               l = l.replaceAll("'","''");
-              sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE ('" + eventName + "', '" + l + "');";
+              sql = "INSERT INTO event_category(channel_event_name, category_name) VALUE (" + mysql.escape(eventName) + ", " + mysql.escape(l) + ");";
               map4.set(eventNameHash + tmp, eventNameHash + tmp);
               db.query(sql);
             }

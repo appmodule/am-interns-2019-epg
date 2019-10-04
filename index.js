@@ -38,8 +38,8 @@ app.get('/tv/event', function (req, res) {
   if (typeof req.query.time != 'undefined' || typeof req.query.epgID != 'undefined'){
 
     //time is given in the 'startTime,endtime' format so we need to divide it
-    let tstart = req.query.time.substring(0, req.query.time.indexOf(","));
-    let tend = req.query.time.substring(req.query.time.indexOf(",") + 1, req.query.time.size);
+    let tstart = parseInt(req.query.time.substring(0, req.query.time.indexOf(",")));
+    let tend = parseInt(req.query.time.substring(req.query.time.indexOf(",") + 1, req.query.time.size));
 
     //we also get a number of channels whose events we need to extract and they are in the format Channel1;Channel2;Channel3...
     let epgChannels = req.query.epgID;
