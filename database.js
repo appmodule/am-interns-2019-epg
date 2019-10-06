@@ -51,7 +51,7 @@ db.connection.connect(function(connectionError){
                   l = l.replace("(lang=de)","");
                   if (!map.has(l)){
                     map.set(l, l);
-                    sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
+                    sql = "INSERT INTO category(category_type) VALUE(" + mysql.escape(l) + ");";
                     db.query(sql)
                   }
                 });
@@ -61,7 +61,7 @@ db.connection.connect(function(connectionError){
                 l = l.replace("(lang=de)","");
                 if (!map.has(l)){
                   map.set(l, l);
-                  sql = "INSERT INTO category(category_type) VALUE('" + l + "');";
+                  sql = "INSERT INTO category(category_type) VALUE(" + mysql.escape(l) + ");";
                   db.query(sql)
                 }
               }
@@ -79,12 +79,12 @@ db.connection.connect(function(connectionError){
         jsonChannels.forEach(function(element) {
           //some channels have icons, some don't. that is why we check whether or not it exists
             if (element["icon"] == undefined && !map2.has(element["@id"])){
-                sql = "INSERT INTO channel(display_name, lang) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "');";
+                sql = "INSERT INTO channel(display_name, lang) VALUE (" + mysql.escape(element["@id"]) + "," + mysql.escape(element["display-name"]["@lang"]) + ");";
                 db.query(sql)
                 .then(()=>{map2.set(element["@id"])})
             }
             else if (element['icon'] != undefined && !map2.has(element["@id"])){
-                sql = "INSERT INTO channel(display_name, lang, icon) VALUE ('" + element["@id"] + "','" + element["display-name"]["@lang"] + "','" + element["icon"]["@src"] + "')";
+                sql = "INSERT INTO channel(display_name, lang, icon) VALUE (" + mysql.escape(element["@id"]) + "," + mysql.escape(element["display-name"]["@lang"]) + "," + mysql.escape(element["icon"]["@src"]) + ")";
                 db.query(sql)
                 .then(()=>{map2.set(element["@id"])})
             }
