@@ -1,5 +1,5 @@
-var dotenv = require('dotenv');
-dotenv.config();
+var dotenv = require('dotenv')
+dotenv.config()
 module.exports = {
   xmlFileRead: process.env.XML_TO_READ,
   jsonFileWrite: process.env.JSON_TO_WRITE,
@@ -8,4 +8,4 @@ module.exports = {
   db_password: process.env.DB_PASSWORD,
   db_name: process.env.DB_DATABASE,
   image_folder: process.env.IMAGE_FOLDER
-};
+}
