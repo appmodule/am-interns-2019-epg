@@ -4,3 +4,4 @@ public
 Dockerfile
 start.sh
 package.json
+epg_xml
