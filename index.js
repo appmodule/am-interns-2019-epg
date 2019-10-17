@@ -20,7 +20,7 @@ if (process.argv.includes('parse')) {
 
 var app = express()
 
-//////////////////////////////REST API///////////////////////////////
+// ////////////////////////////REST API///////////////////////////////
 var sqlAPI
 app.get('/category', (req, res) => { // NOT IN USE
   sqlAPI = 'SELECT category_type FROM category'
@@ -48,7 +48,7 @@ app.get('/tv/event', (req, res) => {
 
     const epg = []
     const err = {
-      code: '200',
+      code: 200,
       desc: 'OK'
     }
 
@@ -102,7 +102,7 @@ app.get('/tv/event/:key', (req, res) => {
     const epgChannels = []
     const epg = []
     const err = {
-      code: '200',
+      code: 200,
       desc: 'OK'
     }
 
