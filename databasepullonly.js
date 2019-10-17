@@ -19,7 +19,7 @@ let sql = 'SELECT * FROM channel'
 db.query(sql)
   .then(rows => {
     rows.forEach((channel) => {
-      sql = 'SELECT channel_display, event_name AS tit, subtitle AS subtit, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL, description AS `desc`, episode_number AS episodeNumber FROM channel_event WHERE channel_display =' + channel.display_name + '"'
+      sql = 'SELECT channel_display, event_name AS tit, subtitle AS subtit, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL, description AS `desc`, episode_number AS episodeNumber FROM channel_event WHERE channel_display =' + mysql.escape(channel.display_name)
       db.query(sql)
         .then(rows => {
           rows.forEach(element => {

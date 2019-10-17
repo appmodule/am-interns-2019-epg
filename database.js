@@ -4,7 +4,7 @@ var HashMap = require('hashmap')
 var downloader = require('image-downloader')
 var parsingxml = require('./parsingxml')
 var Database = require('./databaseclass.js')
-var { dbHost, dbUser, dbPassword, dbName } = require('./config.js') // image_folder removed
+var { dbHost, dbUser, dbPassword, dbName, imageFolder } = require('./config.js') // image_folder removed
 
 var jsonProgramms = parsingxml.jsonProgramms
 var jsonChannels = parsingxml.jsonChannels
@@ -253,7 +253,7 @@ db.connection.connect((connectionError) => {
         if (icon != null) {
           var opt = {
             url: icon,
-            dest: image_folder // determines the destination by the first 2 characters to get a 2 level folder tree for search optimisation
+            dest: imageFolder // determines the destination by the first 2 characters to get a 2 level folder tree for search optimisation
           }
           img = opt.url.lastIndexOf('/')
           img = opt.url.substring(img, opt.url.size)
