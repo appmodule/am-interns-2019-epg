@@ -81,8 +81,7 @@ jsonProgramms.forEach((element) => {
 
   var ms = 0
 
-  var startTimestamp = new Date(yearStart,
-    monthStart - 1 /* Months starts at 0 */, dayStart, hourStart, minuteStart, secondStart, ms).getTime()
+  var startTimestamp = new Date(Date.UTC(yearStart, monthStart - 1 /* Months starts at 0 */, dayStart, hourStart, minuteStart, secondStart, ms)).getTime()
 
   var startDate = yearStart + '-' + monthStart + '-' + dayStart + ' ' + hourStart + ':' + minuteStart + ':' + secondStart
   // Date format must be as in database YYYY-MM-DD HH:mm:SS
@@ -93,8 +92,7 @@ jsonProgramms.forEach((element) => {
   } else {
     startTimestamp -= timeZoneStart * 3600000
   }
-  var stopTimestamp = new Date(yearStop,
-    monthStop - 1, dayStop, hourStop, minuteStop, secondStop, ms).getTime()
+  var stopTimestamp = new Date(Date.UTC(yearStop, monthStop - 1, dayStop, hourStop, minuteStop, secondStop, ms)).getTime()
   var stopDate = yearStop + '-' + monthStop + '-' + dayStop + ' ' + hourStop + ':' + minuteStop + ':' + secondStop
 
   if (signStop === '+') {
