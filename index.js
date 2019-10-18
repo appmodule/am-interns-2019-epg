@@ -4,6 +4,7 @@ var express = require('express')
 var bodyParser = require('body-parser')
 var downloader = require('image-downloader')
 var NodeCache = require('node-cache')
+var path = require('path')
 
 var myCache
 var db
@@ -20,7 +21,8 @@ if (process.argv.includes('parse')) {
 
 var app = express()
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(express.static(path.join(__dirname, 'public')))
 
 // ////////////////////////////REST API///////////////////////////////
 var sqlAPI

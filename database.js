@@ -112,135 +112,140 @@ db.connection.connect((connectionError) => {
       // ///////////////////////////////////////////////////
       // ////////////Variable validation START//////////////
       // ///////////////////////////////////////////////////
-      jsonProgramms.forEach((element) => {
-        if (element.desc === undefined) {
+      for (let p = 0; p < jsonProgramms.length; p++) {
+      // jsonProgramms.forEach((program) => {
+        let program = jsonProgramms[p]
+
+        console.log(`Parsing program ${p}/${jsonProgramms.length}`)
+
+        if (program.desc === undefined) {
           description = null
         } else {
-          description = element.desc.text
+          description = program.desc.text
           description = description.replace("'", "''")
         }
 
-        if (element.icon === undefined) {
+        if (program.icon === undefined) {
           icon = null
         } else {
-          icon = element.icon['@src']
+          icon = program.icon['@src']
         }
 
-        if (element.date === undefined) {
+        if (program.date === undefined) {
           date = null
         } else {
-          date = element.date
+          date = program.date
         }
 
-        if (element.country === undefined) {
+        if (program.country === undefined) {
           country = null
         } else {
-          country = element.country.text
+          country = program.country.text
         }
 
-        if (element['episode-num'] === undefined) {
+        if (program['episode-num'] === undefined) {
           episodeNumber = null
         } else {
-          episodeNumber = element['episode-num'].text
+          episodeNumber = program['episode-num'].text
         }
 
-        if (element.rating === undefined) {
+        if (program.rating === undefined) {
           rating = null
         } else {
-          rating = element.rating.value
+          rating = program.rating.value
         }
 
-        if (element['sub-title'] === undefined) {
+        if (program['sub-title'] === undefined) {
           subtitle = null
         } else {
-          subtitle = element['sub-title'].text
+          subtitle = program['sub-title'].text
           if (typeof subtitle === 'string') {
             subtitle = subtitle.replace("'", "''")
           }
         }
 
-        if (element['star-rating'] === undefined) {
+        if (program['star-rating'] === undefined) {
           starRating = null
         } else {
-          starRating = element['star-rating'].value
+          starRating = program['star-rating'].value
         }
 
-        if (element.credits === undefined) {
+        if (program.credits === undefined) {
           presenter = null
           director = null
           actor = null
         } else {
-          if (element.credits.presenter === undefined) {
+          if (program.credits.presenter === undefined) {
             presenter = null
           } else {
-            if (Array.isArray(element.credits.presenter)) {
+            if (Array.isArray(program.credits.presenter)) {
               presenter = ''
               let pom = ''
-              element.credits.presenter.forEach(function (z) {
+              program.credits.presenter.forEach(function (z) {
                 presenter = presenter + pom + z
                 pom = '\n'
               })
             } else {
-              presenter = element.credits.presenter
+              presenter = program.credits.presenter
             }
             presenter = presenter.replaceAll("'", "''")
           }
 
-          if (element.credits.director === undefined) {
+          if (program.credits.director === undefined) {
             director = null
           } else {
-            if (Array.isArray(element.credits.director)) {
+            if (Array.isArray(program.credits.director)) {
               director = ''
               let pom = ''
-              element.credits.director.forEach(function (z) {
+              program.credits.director.forEach(function (z) {
                 director = director + pom + z
                 pom = '\n'
               })
             } else {
-              director = element.credits.director
+              director = program.credits.director
             }
             director = director.replace("'", "''")
           }
 
-          if (element.credits.actor === undefined) {
+          if (program.credits.actor === undefined) {
             actor = null
           } else {
-            if (Array.isArray(element.credits.actor)) {
+            if (Array.isArray(program.credits.actor)) {
               actor = ''
               let pom = ''
-              element.credits.actor.forEach((z) => {
+              program.credits.actor.forEach((z) => {
                 actor = actor + pom + z
                 pom = '\n'
               })
             } else {
-              actor = element.credits.actor
+              actor = program.credits.actor
             }
             actor = actor.replace("'", "''")
           }
         }
 
-        element.title.text = element.title.text.toString()
-        eventName = element.title.text.replace("'", "''")
+        program.title.text = program.title.text.toString()
+        eventName = program.title.text.replace("'", "''")
         eventName = eventName.replace('(lang=de)', '')
 
-        var startDate = element['@start']
-        var stopDate = element['@stop']
-        var startTimestamp = element.start_timestamp
-        var stopTimestamp = element.stop_timestamp
-        var tz = element.timezone
+        var startDate = program['@start']
+        var stopDate = program['@stop']
+        var startTimestamp = program.start_timestamp
+        var stopTimestamp = program.stop_timestamp
+        var tz = program.timezone
         // ///////////////////////////////////////////////////
         // ////////////Variable validation END////////////////
         // ///////////////////////////////////////////////////
         const tSum = startTimestamp + stopTimestamp
 
-        let eventNameHash = element.title.text
+        let eventNameHash = program.title.text
 
         if (typeof eventNameHash === 'string') {
           eventNameHash = eventNameHash.replace('(lang=de)', '')
           eventNameHash = eventNameHash.replace('\\u', 'u')
         }
 
-        if (map3.has(eventNameHash + tSum + element['@channel'])) {
+        if (map3.has(eventNameHash + tSum + program['@channel'])) {
           return // continue
         }
 
@@ -265,8 +270,8 @@ db.connection.connect((connectionError) => {
         sql = 'INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)' +
 
            'VALUE (' + mysql.escape(startDate) + ',' + mysql.escape(stopDate) + ',' + mysql.escape(tz) + ',' + mysql.escape(startTimestamp) + ',' +
-           mysql.escape(stopTimestamp) + ',' + mysql.escape(element['@channel']) + ',' +
-           mysql.escape(eventName || 'Unknown') + ',' + mysql.escape(element.title['@lang']) + ',' +
+           mysql.escape(stopTimestamp) + ',' + mysql.escape(program['@channel']) + ',' +
+           mysql.escape(eventName || 'Unknown') + ',' + mysql.escape(program.title['@lang']) + ',' +
            mysql.escape(description) + ',' + mysql.escape(rating) + ',' + mysql.escape(starRating) + ',' +
            mysql.escape(icon) + ',' + mysql.escape(episodeNumber) + ',' + mysql.escape(subtitle) + ',' + mysql.escape(date) + ',' +
            mysql.escape(country) + ',' + mysql.escape(presenter) + ',' + mysql.escape(actor) + ',' +
@@ -289,12 +294,12 @@ db.connection.connect((connectionError) => {
         // console.log(sql)
         db.query(sql)
           .then(() => {
-            map3.set(eventNameHash + tSum + element['@channel'], eventName + tSum + element['@channel'])
+            map3.set(eventNameHash + tSum + program['@channel'], eventName + tSum + program['@channel'])
           })
           .catch(e => {
             console.log(e)
           })
-      })
+      }
     })
     .then(() => { // this can be used to help filter shows by category (this wasn't in the specification)
       var eventName
@@ -370,10 +375,11 @@ db.connection.connect((connectionError) => {
 async function downloadIMG (option) {
   let pom
   try {
-    pom = { fn, img } = await downloader.image(option)
-    // console.log(fn) // => /path/to/dest/image.jpg
+    const { fn, img } = await downloader.image(option)
+    console.log('Saved image to:', fn) // => /path/to/dest/image.jpg
+    // Update database
   } catch (e) {
-    // console.error(e)
+    console.error(e)
     // icon = null;
   }
   // return pom.fn;
