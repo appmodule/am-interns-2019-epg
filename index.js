@@ -5,8 +5,6 @@ var logger = require('morgan')
 
 var bodyParser = require('body-parser')
 var events = require('./routes/events')
-var indexRouter = require('./routes/index')
-var usersRouter = require('./routes/users')
 
 var app = express()
 app.use(bodyParser.json())
@@ -22,8 +20,6 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.use('/', indexRouter)
-app.use('/users', usersRouter)
 app.use('/events', events)
 
 // catch 404 and forward to error handler
@@ -41,4 +37,9 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500)
   res.render('error')
 })
+
+app.listen(3000, () => {
+  console.log('Node app is running on port 3000')
+})
+
 module.exports = app

@@ -27,15 +27,15 @@ app.get('/category', (req, res) => { // NOT IN USE
   })
 })
 
-app.get('/tv/event', (req, res) => {
+app.post('/tv/event', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  if (typeof req.query.time !== 'undefined' || typeof req.query.epgID !== 'undefined') {
+  if (typeof req.body.time !== 'undefined' || typeof req.body.epgID !== 'undefined') {
     // time is given in the 'startTime,endtime' format so we need to divide it
-    const tstart = parseInt(req.query.time.substring(0, req.query.time.indexOf(',')))
-    const tend = parseInt(req.query.time.substring(req.query.time.indexOf(',') + 1, req.query.time.size))
+    const tstart = parseInt(req.body.time.substring(0, req.body.time.indexOf(',')))
+    const tend = parseInt(req.body.time.substring(req.body.time.indexOf(',') + 1, req.body.time.size))
 
     // we also get a number of channels whose events we need to extract and they are in the format Channel1;Channel2;Channel3...
-    let epgChannels = req.query.epgID
+    let epgChannels = req.body.epgID
     epgChannels = epgChannels.split(';')
     while (epgChannels.indexOf('') > 0) {
       epgChannels.splice(epgChannels.indexOf(''), 1)
@@ -67,7 +67,7 @@ app.get('/tv/event', (req, res) => {
         channels.push({ epgID: element, events: dataSend })
       })
     } else {
-      const events = myCache.get(req.query.epgID)
+      const events = myCache.get(req.body.epgID)
       const dataSend = []
 
       if (typeof events === 'undefined') {
@@ -79,7 +79,7 @@ app.get('/tv/event', (req, res) => {
           dataSend.push(element)
         }
       })
-      channels.push({ epgID: req.query.epgID, events: dataSend })
+      channels.push({ epgID: req.body.epgID, events: dataSend })
     }
     epg.push({ start: tstart, end: tend, channels: channels })
 
@@ -89,7 +89,7 @@ app.get('/tv/event', (req, res) => {
 
 app.get('/tv/event/:key', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  if (typeof req.params.key !== 'undefined' && typeof req.query.time !== 'undefined') {
+  if (typeof req.params.key !== 'undefined' && typeof req.body.time !== 'undefined') {
     const tstart = req.query.time.substring(0, req.query.time.indexOf(','))
     const tend = req.query.time.substring(req.query.time.indexOf(',') + 1, req.query.time.size)
     const key = req.params.key
@@ -184,10 +184,6 @@ app.get('/tv/event/:id/image', (req, res) => { // not in use
       return res.sendfile(results[0].image)
     }
   })
-})
-
-app.listen(3000, () => {
-  console.log('Node app is running on port 3000')
 })
 
 module.exports = router
