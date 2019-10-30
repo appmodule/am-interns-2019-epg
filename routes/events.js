@@ -13,11 +13,9 @@ if (process.argv.includes('parse')) {
   db = databasepullonly.db
 }
 
-var app = express()
-
 // ////////////////////////////REST API///////////////////////////////
 var sqlAPI
-app.get('/category', (req, res) => { // NOT IN USE
+router.get('/category', (req, res) => { // NOT IN USE
   sqlAPI = 'SELECT category_type FROM category'
   db.connection.query(sqlAPI, (error, results, fields) => {
     if (error) {
@@ -27,7 +25,7 @@ app.get('/category', (req, res) => { // NOT IN USE
   })
 })
 
-app.post('/tv/event', (req, res) => {
+router.post('/tv/event', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   if (typeof req.body.time !== 'undefined' || typeof req.body.epgID !== 'undefined') {
     // time is given in the 'startTime,endtime' format so we need to divide it
@@ -87,7 +85,7 @@ app.post('/tv/event', (req, res) => {
   }
 })
 
-app.get('/tv/event/:key', (req, res) => {
+router.get('/tv/event/:key', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   if (typeof req.params.key !== 'undefined' && typeof req.body.time !== 'undefined') {
     const tstart = req.query.time.substring(0, req.query.time.indexOf(','))
@@ -148,7 +146,7 @@ app.get('/tv/event/:key', (req, res) => {
   }
 })
 
-app.get('/tv/event/:id', (req, res) => { // not in use
+router.get('/tv/event/:id', (req, res) => { // not in use
   const pom = req.params.id
   sqlAPI = 'SELECT * FROM channel_event WHERE id = ' + pom
   db.connection.query(sqlAPI, (error, results, fields) => {
@@ -171,7 +169,7 @@ app.get('/tv/event/:id', (req, res) => { // not in use
   })
 })
 
-app.get('/tv/event/:id/image', (req, res) => { // not in use
+router.get('/tv/event/:id/image', (req, res) => { // not in use
   const pom = req.params.id
   sqlAPI = 'SELECT image FROM channel_event WHERE id = ' + pom
   db.connection.query(sqlAPI, (error, results, fields) => {

@@ -1,0 +1,28 @@
+version: '3.1'
+
+services:
+
+  epg:
+    build:
+      context: .
+    env_file:
+      - .env
+    ports: 
+      - ${EPG_PORT}:3000
+
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    volumes:
+      - ./db_instances:/var/lib/mysql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - ${ADMINER_PORT}:8080
+    depends_on:
+      - db
