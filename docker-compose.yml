@@ -11,7 +11,8 @@ services:
       - ${EPG_PORT}:3000
 
   db:
-    image: mariadb
+    build:
+      context: ./mariadb
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
