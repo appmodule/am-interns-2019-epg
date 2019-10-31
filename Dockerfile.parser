@@ -15,4 +15,4 @@ RUN apt update && apt install -y vim
 # Bundle app source
 COPY . .
 
-CMD [ "node", "index.js", "parse" ]
+CMD [ "./start-parser.sh" ]
