@@ -49,7 +49,9 @@ db.connection.connect((connectionError) => {
               if (!map.has(l)) {
                 map.set(l, l)
                 sql = 'INSERT INTO category(category_type) VALUE(' + mysql.escape(l) + ');'
-                db.query(sql)
+                db.query(sql).catch(e => {
+                  console.log(e)
+                })
               }
             })
           } else {
@@ -58,7 +60,9 @@ db.connection.connect((connectionError) => {
             if (!map.has(l)) {
               map.set(l, l)
               sql = 'INSERT INTO category(category_type) VALUE(' + mysql.escape(l) + ');'
-              db.query(sql)
+              db.query(sql).catch(e => {
+                console.log(e)
+              })
             }
           }
         }
@@ -77,11 +81,15 @@ db.connection.connect((connectionError) => {
         if (element.icon === undefined && !map2.has(element['@id'])) {
           sql = 'INSERT INTO channel(display_name, lang) VALUE (' + mysql.escape(element['@id']) + ',' + mysql.escape(element['display-name']['@lang']) + ');'
           db.query(sql)
-            .then(() => { map2.set(element['@id']) })
+            .then(() => { map2.set(element['@id']) }).catch(e => {
+              console.log(e)
+            })
         } else if (element.icon !== undefined && !map2.has(element['@id'])) {
           sql = 'INSERT INTO channel(display_name, lang, icon) VALUE (' + mysql.escape(element['@id']) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ')'
           db.query(sql)
-            .then(() => { map2.set(element['@id']) })
+            .then(() => { map2.set(element['@id']) }).catch(e => {
+              console.log(e)
+            })
         }
       })
     })
@@ -113,7 +121,7 @@ db.connection.connect((connectionError) => {
       // ////////////Variable validation START//////////////
       // ///////////////////////////////////////////////////
       for (let p = 0; p < jsonProgramms.length; p++) {
-      // jsonProgramms.forEach((program) => {
+        // jsonProgramms.forEach((program) => {
         let program = jsonProgramms[p]
 
         console.log(`Parsing program ${p}/${jsonProgramms.length}`)
@@ -269,13 +277,13 @@ db.connection.connect((connectionError) => {
 
         sql = 'INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)' +
 
-           'VALUE (' + mysql.escape(startDate) + ',' + mysql.escape(stopDate) + ',' + mysql.escape(tz) + ',' + mysql.escape(startTimestamp) + ',' +
-           mysql.escape(stopTimestamp) + ',' + mysql.escape(program['@channel']) + ',' +
-           mysql.escape(eventName || 'Unknown') + ',' + mysql.escape(program.title['@lang']) + ',' +
-           mysql.escape(description) + ',' + mysql.escape(rating) + ',' + mysql.escape(starRating) + ',' +
-           mysql.escape(icon) + ',' + mysql.escape(episodeNumber) + ',' + mysql.escape(subtitle) + ',' + mysql.escape(date) + ',' +
-           mysql.escape(country) + ',' + mysql.escape(presenter) + ',' + mysql.escape(actor) + ',' +
-           mysql.escape(director) + ',' + mysql.escape(img) + ');'
+          'VALUE (' + mysql.escape(startDate) + ',' + mysql.escape(stopDate) + ',' + mysql.escape(tz) + ',' + mysql.escape(startTimestamp) + ',' +
+          mysql.escape(stopTimestamp) + ',' + mysql.escape(program['@channel']) + ',' +
+          mysql.escape(eventName || 'Unknown') + ',' + mysql.escape(program.title['@lang']) + ',' +
+          mysql.escape(description) + ',' + mysql.escape(rating) + ',' + mysql.escape(starRating) + ',' +
+          mysql.escape(icon) + ',' + mysql.escape(episodeNumber) + ',' + mysql.escape(subtitle) + ',' + mysql.escape(date) + ',' +
+          mysql.escape(country) + ',' + mysql.escape(presenter) + ',' + mysql.escape(actor) + ',' +
+          mysql.escape(director) + ',' + mysql.escape(img) + ');'
 
         // + "VALUE ('" + mysql.escape(startDate) + "','" + mysql.escape(stopDate) + "','" + tz + "'," + mysql.escape(startTimestamp) + ","
         // + mysql.escape(stopTimestamp) + ",'" + mysql.escape(element["@channel"]) + "','"
@@ -338,7 +346,9 @@ db.connection.connect((connectionError) => {
                   l = l.replace("'", "''")
                   sql = 'INSERT INTO event_category(channel_event_name, category_name) VALUE (' + mysql.escape(eventName) + ', ' + mysql.escape(l) + ');'
                   map4.set(eventNameHash + tmp, eventNameHash + tmp)
-                  db.query(sql)
+                  db.query(sql).catch(e => {
+                    console.log(e)
+                  })
                 }
               })
             } else {
@@ -347,7 +357,9 @@ db.connection.connect((connectionError) => {
                 l = l.replace("'", "''")
                 sql = 'INSERT INTO event_category(channel_event_name, category_name) VALUE (' + mysql.escape(eventName) + ', ' + mysql.escape(l) + ');'
                 map4.set(eventNameHash + tmp, eventNameHash + tmp)
-                db.query(sql)
+                db.query(sql).catch(e => {
+                  console.log(e)
+                })
               }
             }
           })
@@ -372,7 +384,7 @@ db.connection.connect((connectionError) => {
     })
 })
 
-async function downloadIMG (option) {
+async function downloadIMG(option) {
   let pom
   try {
     const { fn, img } = await downloader.image(option)
