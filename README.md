@@ -1,3 +1,11 @@
+# Start routes
+
+To insert events from json file into the database, use route:
+http://{{server}}/bds/tv/parse
+
+To get events stored in the database, use route:
+http://{{server}}/bds/tv/event
+
 # EPG - BDS
 
 This project is used for parsing, inserting and pulling EPG data. It consists of 3 parts: parsing, inserting into database and RESTfull api.

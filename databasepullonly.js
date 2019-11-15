@@ -1,5 +1,5 @@
 var mysql = require('mysql')
-var NodeCache = require('node-cache')
+// var NodeCache = require('node-cache')
 var Database = require('./databaseclass.js')
 
 console.log('Loading from database')
@@ -13,7 +13,7 @@ var db = new Database({
   database: dbName
 })
 
-var myCache = new NodeCache({ stdTTL: 60 * 60 * 24 })
+// var myCache = new NodeCache({ stdTTL: 60 * 60 * 24 })
 
 let sql = 'SELECT * FROM channel'
 db.query(sql)
@@ -25,9 +25,9 @@ db.query(sql)
           rows.forEach(element => {
             element.lng = element.fin - element.str
           })
-          myCache.set(channel.display_name, rows)
+          // myCache.set(channel.display_name, rows)
         })
     })
   })
 
-module.exports = { myCache, db }
+module.exports = { db }
