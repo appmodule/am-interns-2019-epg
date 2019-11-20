@@ -5,6 +5,7 @@ var downloader = require('image-downloader')
 var parsingxml = require('./parsingxml')
 var Database = require('./databaseclass.js')
 var dotenv = require('dotenv')
+const fs = require('fs')
 dotenv.config()
 var { dbHost, dbUser, dbPassword, dbName, imageFolder } = require('./config.js') // image_folder removed
 
@@ -27,7 +28,7 @@ var map4 = new HashMap() // event_category reserved for future purposes
 
 var arrayPictures = []
 
-async function insertChannels() {
+async function insertChannels () {
   var sql = 'SELECT display_name FROM channel'
   var rows = await db.query(sql)
   for (var element of rows) {
@@ -51,7 +52,7 @@ async function insertChannels() {
   }
 }
 
-async function insertCategory() {
+async function insertCategory () {
   let sql = 'SELECT category_type AS category FROM category;'
 
   let l
@@ -97,7 +98,7 @@ async function insertCategory() {
   }
 }
 
-async function getEvents() {
+async function getEvents () {
   var sql = 'SELECT event_name, channel_display, timestamp_start, timestamp_end FROM channel_event;'
   var rows = await db.query(sql)
 
@@ -107,7 +108,7 @@ async function getEvents() {
   }
 }
 
-async function deleteEvents() {
+async function deleteEvents () {
   var filePath = process.env.XML_TO_READ
   var splitFileName = filePath.split('/')
   var fileName = splitFileName[2]
@@ -120,7 +121,7 @@ async function deleteEvents() {
   await db.query(sql)
 }
 
-async function insertEvents() {
+async function insertEvents () {
   var date
   var episodeNumber
   var rating
@@ -311,7 +312,7 @@ async function insertEvents() {
   }
 }
 
-async function insertEventCategory() {
+async function insertEventCategory () {
   var eventName
   var eventNameHash
 
@@ -362,7 +363,7 @@ async function insertEventCategory() {
   }
 }
 
-async function selectChannels() {
+async function selectChannels () {
   var sql = 'SELECT * FROM channel'
   var rows = await db.query(sql)
   for (var channel of rows) {
@@ -374,14 +375,14 @@ async function selectChannels() {
     // myCache.set(channel.display_name, rows)
   }
 }
-function clearMaps() {
+function clearMaps () {
   map.clear()
   map2.clear()
   map3.clear()
   map4.clear()
 }
 
-async function main() {
+async function main () {
   try {
     await deleteEvents()
   } catch (e) {
@@ -432,13 +433,13 @@ db.connection.connect(async (connectionError) => {
     throw connectionError
   }
 })
-const fs = require('fs')
+
 async function downloadPictures () {
   if (!fs.existsSync(imageFolder)) {
     fs.mkdirSync(imageFolder)
   }
 
-  let downladArr = []
+  // const downladArr = []
   for (var pic of arrayPictures) {
     var folderNames = pic.dest.split('/')
     var folderNameFirst = imageFolder + '/' + folderNames[2]
@@ -450,33 +451,38 @@ async function downloadPictures () {
       fs.mkdirSync(folderNameSecond)
     }
 
-    downladArr.push(pic)
+    // downladArr.push(pic)
+    try {
+      await downloadIMG(pic)
+    } catch (e) {
+      console.log(e)
+    }
   }
-  var splitedArr = []
-  var num = parseInt(downladArr.length / 4)
-  splitedArr[0] = downladArr.slice(0, num)
-  splitedArr[1] = downladArr.slice(num, 2 * num)
-  splitedArr[2] = downladArr.slice(2 * num, 3 * num)
-  splitedArr[3] = downladArr.slice(3 * num, downladArr.length)
+  // var splitedArr = []
+  // var num = parseInt(downladArr.length / 2)
+  // splitedArr[0] = downladArr.slice(0, num)
+  // splitedArr[1] = downladArr.slice(num, downladArr.length)
 
-  var arr0 = downloadArray(splitedArr[0])
-  var arr1 = downloadArray(splitedArr[1])
-  var arr2 = downloadArray(splitedArr[2])
-  var arr3 = downloadArray(splitedArr[3])
+  // var arr0 = downloadArray(splitedArr[0])
+  // var arr1 = downloadArray(splitedArr[1])
 
-  Promise.all(arr0, arr1, arr2, arr3)
+  // Promise.all([arr0, arr1])
 }
 
-async function downloadArray (arr) {
-  for (var a of arr) {
-    await downloadIMG(a)
-  }
-}
+// async function downloadArray (arr) {
+//   for (var a of arr) {
+//     await downloadIMG(a)
+//   }
+// }
 
 async function downloadIMG (option) {
   return downloader.image(option)
     .then(console.log('saved image'))
-    .catch(e => console.log('error saving image', e))
+    .catch(e => {
+      var content = e + '\r\n'
+      fs.appendFile('errors.txt', content)
+      console.log('ERROR SAVING IMAGE')
+    })
   // let pom
   // try {
   //   const { fn, img } = await downloader.image(option)
