@@ -4,3 +4,5 @@ public/images
 start.sh
 package.json
 epg_xml
+images
+errors.txt
