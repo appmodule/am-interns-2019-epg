@@ -14,6 +14,38 @@ redisClient.on('error', function () {
   console.log('Error in Redis')
 })
 
+async function fillBlankEpg (epgArray) {
+  // var epgArray = JSON.parse(data)
+  var db = require('../database.js').db
+  for (var a = 0; a < epgArray.epg.length; a++) {
+    var chnl = epgArray.epg[a].channels
+    for (var i = 0; i < chnl.length; i++) {
+      var event = chnl[i].events
+      if (event.length === 0) {
+        console.log('No EPG-s for test')
+      } else {
+        for (var j = 0; j < event.length; j++) {
+          var z = j + 1
+          if (z > event.length - 1) {
+            console.log('Test is finished for EPG: ' + chnl[i].epgID)
+          } else {
+            var startTime = event[j + 1].str
+            var endTime = event[j].fin
+            var min = 1800000
+            if ((endTime - startTime) > min) {
+              console.log('No EPG: ' + chnl[i].epgID + ', Id of event: ' + event[j].id)
+              var sql = 'INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)' +
+
+                'VALUE ("", "", "", ' + endTime + ',' + startTime + ', "No EPG", "Unknown", "", "", "", "", "", "", "", "", "", "", "", "", "");'
+
+              await db.query(sql)
+            }
+          }
+        }
+      }
+    }
+  }
+}
 // ////////////////////////////REST API///////////////////////////////
 var sqlAPI
 router.get('/category', (req, res) => { // NOT IN USE
@@ -32,7 +64,7 @@ router.post('/tv/parse', (req, res) => {
   db = database.main()
 })
 
-router.post('/tv/event', (req, res) => {
+router.post('/tv/event', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   var databasepullonly = require('../databasepullonly.js')
   db = databasepullonly.db
@@ -79,11 +111,11 @@ router.post('/tv/event', (req, res) => {
               const sql = `SELECT channel_display, event_name AS tit, subtitle AS subtit, lang AS lng, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL, description AS descr, episode_number AS episodeNumber FROM channel_event WHERE channel_display = ${mysql.escape(channel)} AND timestamp_end BETWEEN ${tstarts[j]} AND ${tends[j]} AND timestamp_start BETWEEN ${tstarts[j]} AND ${tends[j]}`
               var rows = await db.query(sql)
               for (var r of rows) {
-                events += `${r.tit}@${r.subtit}@${r.lng}@${r.str}@${r.timeStr}@${r.timeEnd}@${r.fin}@${r.id}@${r.URL}@${r.descr}@${r.episodeNumber};`
+                events += `${r.tit}~${r.subtit}~${r.lng}~${r.str}~${r.timeStr}~${r.timeEnd}~${r.fin}~${r.id}~${r.URL}~${r.descr}~${r.episodeNumber}{`
               }
-              events += '#'
+              events += '^'
             }
-            events += '*'
+            events += '}'
           }
           redisClient.set(key, events)
           var ttl = 60 * 60 * 6 // 6 hours
@@ -92,69 +124,84 @@ router.post('/tv/event', (req, res) => {
 
           reply = events.slice(0, -1)
 
-          var replies = reply.split('*')
+          var replies = reply.split('}')
           var dataSend = []
-          for (var a = 0; a < replies.length; a++) {
-            var reply3 = replies[a].slice(0, -1)
 
-            var replies3 = reply3.split('#')
+          var a = 0
+          for (var rep of replies) {
+            var reply3 = rep.slice(0, -1)
+
+            var replies3 = reply3.split('^')
 
             var channelData = []
-            for (var l = 0; l < replies3.length; l++) {
-              if (replies3[l] === undefined || replies3[l] === null || replies3[l] === '') {
+            var l = 0
+            for (var rep3 of replies3) {
+              if (rep3 === undefined || rep3 === null || rep3 === '') {
                 continue
               } else {
-                var reply1 = replies3[l].slice(0, -1)
+                var reply1 = rep3.slice(0, -1)
 
-                var replies1 = reply1.split(';')
+                var replies1 = reply1.split('{')
 
                 var eventData = []
-                for (var p = 0; p < replies1.length; p++) {
-                  var replies2 = replies1[p].split('@')
+                for (var rep1 of replies1) {
+                  var replies2 = rep1.split('~')
 
                   eventData.push({ tit: replies2[0], subtit: replies2[1], lng: replies2[2], str: parseInt(replies2[3]), timeStr: replies2[4], timeEnd: replies2[5], fin: parseInt(replies2[6]), id: replies2[7], URL: replies2[8], desc: replies2[9], episodeNumber: parseInt(replies2[10]) })
                 }
                 channelData.push({ epgID: epgChannels[l], events: eventData })
               }
+              l++
             }
             dataSend.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelData })
+            a++
           }
-
-          return res.send({ epg: dataSend, error: err })
+          var pom = { epg: dataSend, error: err }
+          await fillBlankEpg(pom)
+          return res.send(pom)
         } else {
           console.log('In cache')
 
           reply = reply.slice(0, -1)
+          replies = []
 
-          replies = reply.split('*')
+          replies = reply.split('}')
+
           dataSend = []
-          for (a = 0; a < replies.length; a++) {
-            reply3 = replies[a].slice(0, -1)
+          a = 0
+          for (rep of replies) {
+            reply3 = rep.slice(0, -1)
 
-            replies3 = reply3.split('#')
+            replies3 = reply3.split('^')
 
             channelData = []
-            for (l = 0; l < replies3.length; l++) {
-              if (replies3[l] === undefined || replies3[l] === null || replies3[l] === '') {
+            l = 0
+            for (rep3 of replies3) {
+              if (rep3 === undefined || rep3 === null || rep3 === '') {
                 continue
               } else {
-                reply1 = replies3[l].slice(0, -1)
+                reply1 = rep3.slice(0, -1)
 
-                replies1 = reply1.split(';')
+                replies1 = reply1.split('{')
 
                 eventData = []
-                for (p = 0; p < replies1.length; p++) {
-                  replies2 = replies1[p].split('@')
+                for (rep1 of replies) {
+                  replies2 = rep1.split('~')
 
                   eventData.push({ tit: replies2[0], subtit: replies2[1], lng: replies2[2], str: parseInt(replies2[3]), timeStr: replies2[4], timeEnd: replies2[5], fin: parseInt(replies2[6]), id: replies2[7], URL: replies2[8], desc: replies2[9], episodeNumber: parseInt(replies2[10]) })
                 }
                 channelData.push({ epgID: epgChannels[l], events: eventData })
               }
+              l++
             }
+
             dataSend.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelData })
+            a++
           }
 
-          return res.send({ epg: dataSend, error: err })
+          pom = { epg: dataSend, error: err }
+          await fillBlankEpg(pom)
+          return res.send(pom)
           // redisClient.flushdb() // flush keys
           // console.log('Cache has been flushed')
         }

@@ -424,6 +424,27 @@ async function main () {
   } catch (e) {
     console.log(e)
   }
+  const rp = require('request-promise-native')
+  var server = '127.0.0.1:3000'
+  var sql = 'SELECT MIN(timestamp_start) as start FROM channel_event'
+  var start = await db.query(sql)
+  sql = 'SELECT MAX(timestamp_end) as end FROM channel_event'
+  var end = await db.query(sql)
+  var times = start[0].start + ',' + end[0].end
+  sql = 'SELECT DISTINCT channel_display FROM channel_event'
+  var channels = await db.query(sql)
+  var epgIDs = ''
+  for (var channel of channels) {
+    epgIDs += channel.channel_display + ';'
+  }
+
+  var form = { time: times, userAgent: 'TapTapTV/3.0 (Web HTML5) Version/3.0', epgID: epgIDs }
+  var parseEvents = {
+    url: `http://${server}/bds/tv/event`,
+    form: form
+  }
+
+  rp.post(parseEvents)
   await downloadPictures()
   clearMaps()
 }
