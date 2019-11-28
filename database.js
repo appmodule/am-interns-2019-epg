@@ -57,9 +57,9 @@ async function insertCategory () {
 
   let l
   var rows = await db.query(sql) // category insertion
-  for (var el of rows) {
-    map.set(el.category)
-  }
+  // for (var el of rows) {
+  //   map.set(el.category)
+  // }
   for (var element of jsonProgramms) {
     if (typeof element.category !== 'undefined') {
       if (Array.isArray(element.category)) { // in json when there are multiple categories it is given as an array
@@ -67,11 +67,14 @@ async function insertCategory () {
         for (element of element.category) {
           element.text = element.text.toString()
           l = element.text.replace('(lang=de)', '')
+          if (l === 'Tutto Sull\'auto') {
+            console.log('EVO MEEEE')
+          }
           if (!map.has(l)) {
             map.set(l, l)
-            sql = 'SELECT * FROM category WHERE category_type = ' + mysql.escape(l) + ';'
+            sql = 'SELECT COUNT(*) as cc FROM category WHERE category_type = ' + mysql.escape(l) + ';'
             var ql = await db.query(sql)
-            if (ql === null) {
+            if (ql[0].cc === 0) {
               sql = 'INSERT INTO category(category_type) VALUE(' + mysql.escape(l) + ');'
               await db.query(sql)
             } else {
@@ -81,12 +84,13 @@ async function insertCategory () {
         }
       } else {
         // l = element.category.text.replace("'", "''") // error not a function when parsing 5usa.xml
+        l = element.category.text.toString()
         l = l.replace('(lang=de)', '')
         if (!map.has(l)) {
           map.set(l, l)
-          sql = 'SELECT * FROM category WHERE category_type = ' + mysql.escape(l) + ';'
+          sql = 'SELECT COUNT(*) as cc FROM category WHERE category_type = ' + mysql.escape(l) + ';'
           ql = await db.query(sql)
-          if (ql === null) {
+          if (ql[0].cc === 0) {
             sql = 'INSERT INTO category(category_type) VALUE(' + mysql.escape(l) + ');'
             await db.query(sql)
           } else {
@@ -349,7 +353,7 @@ async function insertEventCategory () {
         }
       }
     } else {
-      tmp = l = element.category.text.replace('(lang=de)', '')
+      tmp = l = element.category.text
       if (!map4.has(eventNameHash + l)) {
         sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
         sqlRes = await db.query(sql)
@@ -445,7 +449,7 @@ async function main () {
   }
 
   await rp.post(parseEvents)
-  await downloadPictures()
+  // await downloadPictures()
   clearMaps()
 }
 /* This section fetches existing data and inserts new data into the base */
