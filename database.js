@@ -56,10 +56,6 @@ async function insertCategory () {
   let sql = 'SELECT category_type AS category FROM category;'
 
   let l
-  var rows = await db.query(sql) // category insertion
-  // for (var el of rows) {
-  //   map.set(el.category)
-  // }
   for (var element of jsonProgramms) {
     if (typeof element.category !== 'undefined') {
       if (Array.isArray(element.category)) { // in json when there are multiple categories it is given as an array
@@ -67,9 +63,6 @@ async function insertCategory () {
         for (element of element.category) {
           element.text = element.text.toString()
           l = element.text.replace('(lang=de)', '')
-          if (l === 'Tutto Sull\'auto') {
-            console.log('EVO MEEEE')
-          }
           if (!map.has(l)) {
             map.set(l, l)
             sql = 'SELECT COUNT(*) as cc FROM category WHERE category_type = ' + mysql.escape(l) + ';'
