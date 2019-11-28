@@ -17,33 +17,56 @@ redisClient.on('error', function () {
 async function fillBlankEpg (epgArray) {
   // var epgArray = JSON.parse(data)
   var db = require('../database.js').db
-  for (var a = 0; a < epgArray.epg.length; a++) {
-    var chnl = epgArray.epg[a].channels
-    for (var i = 0; i < chnl.length; i++) {
-      var event = chnl[i].events
+  // for (var a = 0; a < epgArray.length; a++) {
+  var a = 0
+  for (var epg of epgArray.epg) {
+    var chnl = epg.channels
+    // for (var i = 0; i < chnl.length; i++) {
+    var i = 0
+    for (var ch of chnl) {
+      var event = ch.events
+      var epgID = ch.epgID
       if (event.length === 0) {
         console.log('No EPG-s for test')
       } else {
-        for (var j = 0; j < event.length; j++) {
+        // for (var j = 0; j < event.length; j++) {
+        var j = 0
+        for (var ev of event) {
           var z = j + 1
           if (z > event.length - 1) {
             console.log('Test is finished for EPG: ' + chnl[i].epgID)
           } else {
-            var startTime = event[j + 1].str
-            var endTime = event[j].fin
-            var min = 1800000
-            if ((endTime - startTime) > min) {
+            var displ = epgID
+            var startTimestamp = event[j + 1].str
+            var endTimestamp = event[j].fin
+            var startTime = (new Date(startTimestamp - 3600000)).toISOString()
+            var endTime = (new Date(endTimestamp - 3600000)).toISOString()
+            var startDate = startTime.toString().replace('T', ' ')
+            startDate = startDate.slice(0, 19)
+            var endDate = endTime.toString().replace('T', ' ')
+            endDate = endDate.slice(0, 19)
+            var min = 0
+            var unknownEvent = 'No EPG'
+            if ((startTimestamp - endTimestamp) > min) {
               console.log('No EPG: ' + chnl[i].epgID + ', Id of event: ' + event[j].id)
-              var sql = 'INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)' +
+              var sql = 'SELECT COUNT(*) as noepg FROM channel_event WHERE start = ' + mysql.escape(endDate) + ' AND end = ' + mysql.escape(startDate) + ' AND event_name = ' + mysql.escape(unknownEvent) + ' AND channel_display = ' + mysql.escape(displ) + ';'
+              var epgres = await db.query(sql)
 
-                'VALUE ("", "", "", ' + endTime + ',' + startTime + ', "No EPG", "Unknown", "", "", "", "", "", "", "", "", "", "", "", "", "");'
+              if (epgres[0].noepg === 0) {
+                sql = 'INSERT INTO channel_event(start, end, timestamp_start, timestamp_end, event_name, channel_display)' +
 
-              await db.query(sql)
+                  'VALUE (' + mysql.escape(endDate) + ',' + mysql.escape(startDate) + ',' + mysql.escape(endTimestamp) + ',' + mysql.escape(startTimestamp) + ',' + mysql.escape(unknownEvent) + ',' + mysql.escape(displ) + ');'
+
+                await db.query(sql)
+              }
             }
           }
+          j++
         }
       }
+      i++
     }
+    a++
   }
 }
 // ////////////////////////////REST API///////////////////////////////
@@ -163,45 +186,45 @@ router.post('/tv/event', async (req, res) => {
           console.log('In cache')
 
           reply = reply.slice(0, -1)
-          replies = []
+          var repliesCache = []
 
-          replies = reply.split('}')
+          repliesCache = reply.split('}')
 
-          dataSend = []
+          var dataSendCache = []
           a = 0
-          for (rep of replies) {
-            reply3 = rep.slice(0, -1)
+          for (var repCache of repliesCache) {
+            var reply3Cache = repCache.slice(0, -1)
 
-            replies3 = reply3.split('^')
+            var replies3Cache = reply3Cache.split('^')
 
-            channelData = []
+            var channelDataCache = []
             l = 0
-            for (rep3 of replies3) {
-              if (rep3 === undefined || rep3 === null || rep3 === '') {
+            for (var rep3Cache of replies3Cache) {
+              if (reply3Cache === undefined || rep3Cache === null || rep3Cache === '') {
                 continue
               } else {
-                reply1 = rep3.slice(0, -1)
+                var reply1Cache = rep3Cache.slice(0, -1)
 
-                replies1 = reply1.split('{')
+                var replies1Cache = reply1Cache.split('{')
 
-                eventData = []
-                for (rep1 of replies) {
-                  replies2 = rep1.split('~')
+                var eventDataCache = []
+                for (var rep1Cache of replies1Cache) {
+                  var replies2Cache = rep1Cache.split('~')
 
-                  eventData.push({ tit: replies2[0], subtit: replies2[1], lng: replies2[2], str: parseInt(replies2[3]), timeStr: replies2[4], timeEnd: replies2[5], fin: parseInt(replies2[6]), id: replies2[7], URL: replies2[8], desc: replies2[9], episodeNumber: parseInt(replies2[10]) })
+                  eventDataCache.push({ tit: replies2Cache[0], subtit: replies2Cache[1], lng: replies2Cache[2], str: parseInt(replies2Cache[3]), timeStr: replies2Cache[4], timeEnd: replies2Cache[5], fin: parseInt(replies2Cache[6]), id: replies2Cache[7], URL: replies2Cache[8], desc: replies2Cache[9], episodeNumber: parseInt(replies2Cache[10]) })
                 }
-                channelData.push({ epgID: epgChannels[l], events: eventData })
+                channelDataCache.push({ epgID: epgChannels[l], events: eventDataCache })
               }
               l++
             }
 
-            dataSend.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelData })
+            dataSendCache.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelDataCache })
             a++
           }
 
-          pom = { epg: dataSend, error: err }
-          await fillBlankEpg(pom)
-          return res.send(pom)
+          var pomCache = { epg: dataSendCache, error: err }
+          await fillBlankEpg(pomCache)
+          return res.send(pomCache)
           // redisClient.flushdb() // flush keys
           // console.log('Cache has been flushed')
         }

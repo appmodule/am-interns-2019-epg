@@ -325,7 +325,7 @@ async function insertEventCategory () {
   let tmp
   for (element of jsonProgramms) {
     if (typeof element.category === 'undefined') {
-      return
+      continue
     }
     if (element.title && element.title.text) {
       eventName = element.title.text.toString()
@@ -444,7 +444,7 @@ async function main () {
     form: form
   }
 
-  rp.post(parseEvents)
+  await rp.post(parseEvents)
   await downloadPictures()
   clearMaps()
 }
