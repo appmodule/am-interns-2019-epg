@@ -5,16 +5,6 @@ var fs = require('fs')
 var bodyParser = require('body-parser')
 var { xmlFileRead, jsonFileWrite, jsonChannelsFile, jsonEventsFile } = require('./config.js')
 
-/* This section is used for date formating */
-// Number.padLeft = function (base, chr) {
-//   var len = (String(base || 10).length - String(this).length) + 1
-//   return len > 0 ? new Array(len).join(chr || '0') + this : this
-// }
-function padLeft (base, chr) {
-  var len = (String(base || 10).length - String(this).length) + 1
-  return len > 0 ? new Array(len).join(chr || '0') + this : this
-}
-
 var app = express()
 var xmlData = fs.readFileSync(xmlFileRead).toString()
 
@@ -119,48 +109,6 @@ jsonProgramms.forEach((element) => {
   programmeArr.push(element)
 })
 
-/* This loop takes care of EPH holes and patches them if they exist,
-  maximum duration of one hole is 1h */
-for (let i = 0; i < programmeArr.length - 1; i++) {
-// Checks if the end of the first element is the same time as ending of the second element,
-// if not, we need to patch the hole. Also check if the two events from the same channel
-// because events from multiple channels are in this array
-  if (programmeArr[i]['@stop'] !== programmeArr[i + 1]['@start'] &&
-        programmeArr[i]['@channel'] === programmeArr[i + 1]['@channel']) {
-    const name = programmeArr[i]['@channel']
-    // fill in the info for the EPG hole
-    const element = {
-      '@start': programmeArr[i]['@stop'],
-      '@stop': programmeArr[i + 1]['@start'],
-      title: {
-        text: 'No Channel EPG',
-        '@lang': 'no'
-      },
-      '@channel': name
-    }
-    const prevStop = programmeArr[i].stop_timestamp
-    const nextStart = programmeArr[i + 1].start_timestamp
-
-    element.start_timestamp = prevStop // set start timestamp parameter
-
-    if ((nextStart - prevStop) > 36000000) { // Logic for making hole patches last a maximum of 1h/3,600,000ms
-      element.stop_timestamp = prevStop + 3600000 // set stop timestamp parameter
-      var d = new Date(element.stop_timestamp)
-
-      const dformat = [d.getFullYear(), (d.getMonth() + 1).padLeft(), d.getDate().padLeft()].join('-') +
-            ' ' +
-            [d.getHours().padLeft(), d.getMinutes().padLeft(), d.getSeconds().padLeft()].join(':')
-
-      element['@stop'] = dformat // Stop date update is needed here because it wont end when the next one starts
-      // which also means there will be more holes after this one
-    } else {
-      element.stop_timestamp = nextStart // set stop timestamp parameter
-    }
-    element.timezone = programmeArr[i].timezone // set timezone parameter
-
-    // programmeArr.splice(i + 1, 0, element) // filling the No EPG element into the array
-  }
-}
 jsonProgramms = programmeArr
 
 module.exports = { jsonChannels, jsonProgramms }

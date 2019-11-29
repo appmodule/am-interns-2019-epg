@@ -33,6 +33,9 @@ async function fillBlankEpg (epgArray) {
         var j = 0
         for (var ev of event) {
           var z = j + 1
+          if (ev.desc === 'Beth finally starts to move on with her life but as she and Mike grow closer, the family of her missing husband don\'t want to see her start a new life without him.') {
+            console.log('')
+          }
           if (z > event.length - 1) {
             console.log('Test is finished for EPG: ' + chnl[i].epgID)
           } else {
