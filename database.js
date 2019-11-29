@@ -443,7 +443,7 @@ async function main () {
   }
 
   await rp.post(parseEvents)
-  // await downloadPictures()
+  await downloadPictures()
   clearMaps()
 }
 /* This section fetches existing data and inserts new data into the base */
