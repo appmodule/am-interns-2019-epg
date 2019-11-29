@@ -45,9 +45,10 @@ async function fillBlankEpg (epgArray) {
             startDate = startDate.slice(0, 19)
             var endDate = endTime.toString().replace('T', ' ')
             endDate = endDate.slice(0, 19)
-            var min = 0
+            // var min = 0
             var unknownEvent = 'No EPG'
-            if ((startTimestamp - endTimestamp) > min) {
+            // if ((startTimestamp - endTimestamp) > min) {
+            if (startTimestamp !== endTimestamp) {
               console.log('No EPG: ' + chnl[i].epgID + ', Id of event: ' + event[j].id)
               var sql = 'SELECT COUNT(*) as noepg FROM channel_event WHERE start = ' + mysql.escape(endDate) + ' AND end = ' + mysql.escape(startDate) + ' AND event_name = ' + mysql.escape(unknownEvent) + ' AND channel_display = ' + mysql.escape(displ) + ';'
               var epgres = await db.query(sql)

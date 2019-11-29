@@ -6,7 +6,11 @@ var bodyParser = require('body-parser')
 var { xmlFileRead, jsonFileWrite, jsonChannelsFile, jsonEventsFile } = require('./config.js')
 
 /* This section is used for date formating */
-Number.padLeft = function (base, chr) {
+// Number.padLeft = function (base, chr) {
+//   var len = (String(base || 10).length - String(this).length) + 1
+//   return len > 0 ? new Array(len).join(chr || '0') + this : this
+// }
+function padLeft (base, chr) {
   var len = (String(base || 10).length - String(this).length) + 1
   return len > 0 ? new Array(len).join(chr || '0') + this : this
 }
@@ -53,11 +57,11 @@ fs.writeFileSync(jsonFileWrite, JSON.stringify(jsonObj, null, 2), function (err)
 const programmeArr = []
 
 jsonProgramms.forEach((element) => {
-/////////////////////////////////////////////////////////////////
-//Date format in xml files is '20190803015000 +0000'/////////////
-//////////////////////////////'YYYYMMDDHHmmSS (+/-)HHmm'/////////
-/////////////////////////////////////////////Last part is GMT////
-/////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////
+// Date format in xml files is '20190803015000 +0000'/////////////
+/// ///////////////////////////'YYYYMMDDHHmmSS (+/-)HHmm'/////////
+/// //////////////////////////////////////////Last part is GMT////
+/// //////////////////////////////////////////////////////////////
 
   // Start time
   var yearStart = element['@start'].substring(0, 4)
@@ -115,7 +119,7 @@ jsonProgramms.forEach((element) => {
   programmeArr.push(element)
 })
 
-/* This loop takes care of EPH holes and patches them if they exist, 
+/* This loop takes care of EPH holes and patches them if they exist,
   maximum duration of one hole is 1h */
 for (let i = 0; i < programmeArr.length - 1; i++) {
 // Checks if the end of the first element is the same time as ending of the second element,
@@ -139,7 +143,7 @@ for (let i = 0; i < programmeArr.length - 1; i++) {
 
     element.start_timestamp = prevStop // set start timestamp parameter
 
-    if ((nextStart - prevStop) > 3600000) { // Logic for making hole patches last a maximum of 1h/3,600,000ms
+    if ((nextStart - prevStop) > 36000000) { // Logic for making hole patches last a maximum of 1h/3,600,000ms
       element.stop_timestamp = prevStop + 3600000 // set stop timestamp parameter
       var d = new Date(element.stop_timestamp)
 
@@ -154,7 +158,7 @@ for (let i = 0; i < programmeArr.length - 1; i++) {
     }
     element.timezone = programmeArr[i].timezone // set timezone parameter
 
-    programmeArr.splice(i + 1, 0, element) // filling the No EPG element into the array
+    // programmeArr.splice(i + 1, 0, element) // filling the No EPG element into the array
   }
 }
 jsonProgramms = programmeArr

@@ -434,6 +434,7 @@ async function main () {
   for (var channel of channels) {
     epgIDs += channel.channel_display + ';'
   }
+  console.log(epgIDs)
 
   var form = { time: times, userAgent: 'TapTapTV/3.0 (Web HTML5) Version/3.0', epgID: epgIDs }
   var parseEvents = {
