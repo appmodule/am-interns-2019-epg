@@ -1,5 +1,4 @@
 var mysql = require('mysql')
-// var NodeCache = require('node-cache')
 var HashMap = require('hashmap')
 var downloader = require('image-downloader')
 var parsingxml = require('./parsingxml')
@@ -76,7 +75,6 @@ async function insertCategory () {
           }
         }
       } else {
-        // l = element.category.text.replace("'", "''") // error not a function when parsing 5usa.xml
         l = element.category.text.toString()
         l = l.replace('(lang=de)', '')
         if (!map.has(l)) {
@@ -113,9 +111,12 @@ async function deleteEvents () {
   var fileDate = splitFileDate[2]
   fileDate += ' 00:00:00'
   var dt = Date.parse(fileDate)
-  // console.log(dt)
   var sql = 'DELETE FROM channel_event WHERE timestamp_start > ' + dt + ';'
   await db.query(sql)
+}
+
+async function downloadComplete () {
+  console.log('Finished downloading images.')
 }
 
 async function insertEvents () {
@@ -125,9 +126,7 @@ async function insertEvents () {
   var starRating
   var subtitle
   var description
-  // var category
   var icon
-  // var lang
   var country
   var presenter
   var director
@@ -266,10 +265,6 @@ async function insertEvents () {
 
       var img = null
 
-      /*
-      position to ./public/images
-      mkdir -p {{0..9},{a..z},{A..Z}}/{{0..9},{a..z},{A..Z}} and enter the command in the terminal
-      */
       if (icon != null) {
         var opt = {
           url: icon,
@@ -280,7 +275,6 @@ async function insertEvents () {
         opt.dest = opt.dest + '/' + img[1] + '/' + img[2]
         img = opt.dest + img
         arrayPictures.push(opt)
-        // downloadIMG(opt)
       }
 
       var channelName = program['@channel']
@@ -369,7 +363,6 @@ async function selectChannels () {
     for (var element of rows) {
       element.lng = element.fin - element.str
     }
-    // myCache.set(channel.display_name, rows)
   }
 }
 function clearMaps () {
@@ -434,7 +427,6 @@ async function main () {
   for (var channel of channels) {
     epgIDs += channel.channel_display + ';'
   }
-  console.log(epgIDs)
 
   var form = { time: times, userAgent: 'TapTapTV/3.0 (Web HTML5) Version/3.0', epgID: epgIDs }
   var parseEvents = {
@@ -444,6 +436,7 @@ async function main () {
 
   await rp.post(parseEvents)
   await downloadPictures()
+  await downloadComplete()
   clearMaps()
 }
 /* This section fetches existing data and inserts new data into the base */
@@ -470,29 +463,13 @@ async function downloadPictures () {
       fs.mkdirSync(folderNameSecond)
     }
 
-    // downladArr.push(pic)
     try {
       await downloadIMG(pic)
     } catch (e) {
       console.log(e)
     }
   }
-  // var splitedArr = []
-  // var num = parseInt(downladArr.length / 2)
-  // splitedArr[0] = downladArr.slice(0, num)
-  // splitedArr[1] = downladArr.slice(num, downladArr.length)
-
-  // var arr0 = downloadArray(splitedArr[0])
-  // var arr1 = downloadArray(splitedArr[1])
-
-  // Promise.all([arr0, arr1])
 }
-
-// async function downloadArray (arr) {
-//   for (var a of arr) {
-//     await downloadIMG(a)
-//   }
-// }
 
 async function downloadIMG (option) {
   return downloader.image(option)
@@ -502,15 +479,5 @@ async function downloadIMG (option) {
       fs.appendFile('errors.txt', content)
       console.log('ERROR SAVING IMAGE')
     })
-  // let pom
-  // try {
-  //   const { fn, img } = await downloader.image(option)
-  //   console.log('Saved image to:', fn) // => /path/to/dest/image.jpg
-  //   // Update database
-  // } catch (e) {
-  //   console.log(e)
-  //   // icon = null;
-  // }
-  // return pom.fn;
 }
 module.exports = { db, main }

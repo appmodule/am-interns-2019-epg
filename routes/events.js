@@ -15,13 +15,9 @@ redisClient.on('error', function () {
 })
 
 async function fillBlankEpg (epgArray) {
-  // var epgArray = JSON.parse(data)
   var db = require('../database.js').db
-  // for (var a = 0; a < epgArray.length; a++) {
-  var a = 0
   for (var epg of epgArray.epg) {
     var chnl = epg.channels
-    // for (var i = 0; i < chnl.length; i++) {
     var i = 0
     for (var ch of chnl) {
       var event = ch.events
@@ -29,13 +25,9 @@ async function fillBlankEpg (epgArray) {
       if (event.length === 0) {
         console.log('No EPG-s for test')
       } else {
-        // for (var j = 0; j < event.length; j++) {
         var j = 0
         for (var ev of event) {
           var z = j + 1
-          if (ev.desc === 'Beth finally starts to move on with her life but as she and Mike grow closer, the family of her missing husband don\'t want to see her start a new life without him.') {
-            console.log('')
-          }
           if (z > event.length - 1) {
             console.log('Test is finished for EPG: ' + chnl[i].epgID)
           } else {
@@ -48,9 +40,7 @@ async function fillBlankEpg (epgArray) {
             startDate = startDate.slice(0, 19)
             var endDate = endTime.toString().replace('T', ' ')
             endDate = endDate.slice(0, 19)
-            // var min = 0
             var unknownEvent = 'No EPG'
-            // if ((startTimestamp - endTimestamp) > min) {
             if (startTimestamp !== endTimestamp) {
               console.log('No EPG: ' + chnl[i].epgID + ', Id of event: ' + event[j].id)
               var sql = 'SELECT COUNT(*) as noepg FROM channel_event WHERE start = ' + mysql.escape(endDate) + ' AND end = ' + mysql.escape(startDate) + ' AND event_name = ' + mysql.escape(unknownEvent) + ' AND channel_display = ' + mysql.escape(displ) + ';'
@@ -70,7 +60,6 @@ async function fillBlankEpg (epgArray) {
       }
       i++
     }
-    a++
   }
 }
 // ////////////////////////////REST API///////////////////////////////
@@ -86,8 +75,6 @@ router.get('/category', (req, res) => { // NOT IN USE
 })
 var database = require('../database.js')
 router.post('/tv/parse', (req, res) => {
-  // var databasepullonly = require('../database.js')
-  // db = databasepullonly.db
   db = database.main()
 })
 
@@ -116,14 +103,6 @@ router.post('/tv/event', async (req, res) => {
       epgChannels.splice(epgChannels.indexOf(''), 1)
     }
 
-    // const epg = []
-    // const err = {
-    //   code: 200,
-    //   desc: 'OK'
-    // }
-
-    // const channels = []
-
     if (Array.isArray(epgChannels)) {
       var key = epgChannels + time
       let events = ''
@@ -151,30 +130,30 @@ router.post('/tv/event', async (req, res) => {
 
           reply = events.slice(0, -1)
 
-          var replies = reply.split('}')
+          var timestampArr = reply.split('}')
           var dataSend = []
 
           var a = 0
-          for (var rep of replies) {
-            var reply3 = rep.slice(0, -1)
+          for (var ts of timestampArr) {
+            var ts1 = ts.slice(0, -1)
 
-            var replies3 = reply3.split('^')
+            var channelArr = ts1.split('^')
 
             var channelData = []
             var l = 0
-            for (var rep3 of replies3) {
-              if (rep3 === undefined || rep3 === null || rep3 === '') {
+            for (var ch of channelArr) {
+              if (ch === undefined || ch === null || ch === '') {
                 continue
               } else {
-                var reply1 = rep3.slice(0, -1)
+                var ch1 = ch.slice(0, -1)
 
-                var replies1 = reply1.split('{')
+                var eventArr = ch1.split('{')
 
                 var eventData = []
-                for (var rep1 of replies1) {
-                  var replies2 = rep1.split('~')
+                for (var ev of eventArr) {
+                  var eventAttributes = ev.split('~')
 
-                  eventData.push({ tit: replies2[0], subtit: replies2[1], lng: replies2[2], str: parseInt(replies2[3]), timeStr: replies2[4], timeEnd: replies2[5], fin: parseInt(replies2[6]), id: replies2[7], URL: replies2[8], desc: replies2[9], episodeNumber: parseInt(replies2[10]) })
+                  eventData.push({ tit: eventAttributes[0], subtit: eventAttributes[1], lng: eventAttributes[2], str: parseInt(eventAttributes[3]), timeStr: eventAttributes[4], timeEnd: eventAttributes[5], fin: parseInt(eventAttributes[6]), id: eventAttributes[7], URL: eventAttributes[8], desc: eventAttributes[9], episodeNumber: parseInt(eventAttributes[10]) })
                 }
                 channelData.push({ epgID: epgChannels[l], events: eventData })
               }
@@ -183,39 +162,39 @@ router.post('/tv/event', async (req, res) => {
             dataSend.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelData })
             a++
           }
-          var pom = { epg: dataSend, error: err }
-          await fillBlankEpg(pom)
-          return res.send(pom)
+          var data = { epg: dataSend, error: err }
+          await fillBlankEpg(data)
+          return res.send(data)
         } else {
           console.log('In cache')
 
           reply = reply.slice(0, -1)
-          var repliesCache = []
+          // var timestampArr = []
 
-          repliesCache = reply.split('}')
+          timestampArr = reply.split('}')
 
           var dataSendCache = []
           a = 0
-          for (var repCache of repliesCache) {
-            var reply3Cache = repCache.slice(0, -1)
+          for (ts of timestampArr) {
+            ts1 = ts.slice(0, -1)
 
-            var replies3Cache = reply3Cache.split('^')
+            channelArr = ts1.split('^')
 
             var channelDataCache = []
             l = 0
-            for (var rep3Cache of replies3Cache) {
-              if (reply3Cache === undefined || rep3Cache === null || rep3Cache === '') {
+            for (ch of channelArr) {
+              if (ch === undefined || ch === null || ch === '') {
                 continue
               } else {
-                var reply1Cache = rep3Cache.slice(0, -1)
+                ch1 = ch.slice(0, -1)
 
-                var replies1Cache = reply1Cache.split('{')
+                eventArr = ch1.split('{')
 
                 var eventDataCache = []
-                for (var rep1Cache of replies1Cache) {
-                  var replies2Cache = rep1Cache.split('~')
+                for (ev of eventArr) {
+                  eventAttributes = ev.split('~')
 
-                  eventDataCache.push({ tit: replies2Cache[0], subtit: replies2Cache[1], lng: replies2Cache[2], str: parseInt(replies2Cache[3]), timeStr: replies2Cache[4], timeEnd: replies2Cache[5], fin: parseInt(replies2Cache[6]), id: replies2Cache[7], URL: replies2Cache[8], desc: replies2Cache[9], episodeNumber: parseInt(replies2Cache[10]) })
+                  eventDataCache.push({ tit: eventAttributes[0], subtit: eventAttributes[1], lng: eventAttributes[2], str: parseInt(eventAttributes[3]), timeStr: eventAttributes[4], timeEnd: eventAttributes[5], fin: parseInt(eventAttributes[6]), id: eventAttributes[7], URL: eventAttributes[8], desc: eventAttributes[9], episodeNumber: parseInt(eventAttributes[10]) })
                 }
                 channelDataCache.push({ epgID: epgChannels[l], events: eventDataCache })
               }
@@ -226,9 +205,9 @@ router.post('/tv/event', async (req, res) => {
             a++
           }
 
-          var pomCache = { epg: dataSendCache, error: err }
-          await fillBlankEpg(pomCache)
-          return res.send(pomCache)
+          var dataCache = { epg: dataSendCache, error: err }
+          await fillBlankEpg(dataCache)
+          return res.send(dataCache)
           // redisClient.flushdb() // flush keys
           // console.log('Cache has been flushed')
         }
