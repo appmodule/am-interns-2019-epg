@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/bds', events)
 const rp = require('request-promise-native')
-var server = '127.0.0.1:3000'
+var server = '127.0.0.1:3005'
 var parseEvents = {
   url: `http://${server}/bds/tv/parse`
 }
@@ -42,8 +42,8 @@ app.use(function (err, req, res, next) {
   res.render('error')
 })
 
-app.listen(3000, () => {
-  console.log('Node app is running on port 3000')
+app.listen(3005, () => {
+  console.log('Node app is running on port 3005')
 })
 
 module.exports = app

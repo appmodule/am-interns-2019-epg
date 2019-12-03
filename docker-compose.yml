@@ -32,6 +32,13 @@ services:
     volumes:
       - ./db_instances:/var/lib/mysql
 
+  
+  Redis:
+    image: sameersbn/redis:4.0.9-3
+    ports:
+      - 6379:6379
+    restart: always 
+  
   adminer:
     image: adminer
     restart: always
