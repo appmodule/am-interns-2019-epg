@@ -5,7 +5,7 @@ var mysql = require('mysql')
 var db
 var redis = require('redis')
 
-var redisClient = redis.createClient({ host: 'localhost', port: 6379 })
+var redisClient = redis.createClient({ host: 'Redis', port: 6379 })
 redisClient.on('ready', function () {
   console.log('Redis is ready')
 })

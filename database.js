@@ -365,7 +365,7 @@ async function selectChannels () {
     }
   }
 }
-function clearMaps () {
+async function clearMaps () {
   map.clear()
   map2.clear()
   map3.clear()
@@ -434,10 +434,14 @@ async function main () {
     form: form
   }
 
-  await rp.post(parseEvents)
-  await downloadPictures()
-  await downloadComplete()
-  clearMaps()
+  try {
+    await rp.post(parseEvents)
+    await downloadPictures()
+    await downloadComplete()
+    await clearMaps()
+  } catch (e) {
+    console.log(e)
+  }
 }
 /* This section fetches existing data and inserts new data into the base */
 db.connection.connect(async (connectionError) => {
