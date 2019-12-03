@@ -415,7 +415,7 @@ async function main () {
     console.log(e)
   }
   const rp = require('request-promise-native')
-  var server = '127.0.0.1:3000'
+  var server = '127.0.0.1:3005'
   var sql = 'SELECT MIN(timestamp_start) as start FROM channel_event'
   var start = await db.query(sql)
   sql = 'SELECT MAX(timestamp_end) as end FROM channel_event'
