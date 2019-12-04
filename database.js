@@ -37,17 +37,17 @@ async function insertChannels () {
     if (element.icon === undefined && !map2.has(element['@id'])) {
       sql = 'INSERT INTO channel(display_name, lang) VALUE (' + mysql.escape(element['@id']) + ',' + mysql.escape(element['display-name']['@lang']) + ');'
       await db.query(sql)
-      try { map2.set(element['@id']) } catch (e) {
+      try { map2.set(element['@id'], element['@id']) } catch (e) {
         console.log(e)
       }
     } else if (element.icon !== undefined && !map2.has(element['@id'])) {
       sql = 'INSERT INTO channel(display_name, lang, icon) VALUE (' + mysql.escape(element['@id']) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ')'
       await db.query(sql)
-      try { map2.set(element['@id']) } catch (e) {
+      try { map2.set(element['@id'], element['@id']) } catch (e) {
         console.log(e)
       }
     }
-    return rows
+    // return rows
   }
 }
 
@@ -103,11 +103,11 @@ async function getEvents () {
   }
 }
 
-async function deleteEvents (eventsxml) {
-  var filePath = eventsxml
-  var splitFileName = filePath.split('/')
-  var fileName = splitFileName[2]
-  var splitFileDate = fileName.split('_')
+async function deleteEvents (eventsXml) {
+  var filePath = eventsXml
+  // var splitFileName = filePath.split('/')
+  // var fileName = splitFileName[2]
+  var splitFileDate = filePath.split('_')
   var fileDateXml = splitFileDate[2]
   var fileDate = fileDateXml.split('.')[0]
   fileDate += ' 00:00:00'
@@ -373,9 +373,9 @@ async function clearMaps () {
   map4.clear()
 }
 
-async function main () {
+async function main (eventsXml) {
   try {
-    await deleteEvents()
+    await deleteEvents(eventsXml)
   } catch (e) {
     console.log(e)
   }
