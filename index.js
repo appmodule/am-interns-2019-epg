@@ -19,13 +19,13 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/bds', events)
-const rp = require('request-promise-native')
-var server = '127.0.0.1:3005'
-var parseEvents = {
-  url: `http://${server}/bds/tv/parse`
-}
+// const rp = require('request-promise-native')
+// var server = '127.0.0.1:3005'
+// var parseEvents = {
+//   url: `http://${server}/bds/tv/parse`
+// }
 
-rp.post(parseEvents)
+// rp.post(parseEvents)
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404))

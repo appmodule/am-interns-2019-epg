@@ -103,12 +103,13 @@ async function getEvents () {
   }
 }
 
-async function deleteEvents () {
-  var filePath = process.env.XML_TO_READ
+async function deleteEvents (eventsxml) {
+  var filePath = eventsxml
   var splitFileName = filePath.split('/')
   var fileName = splitFileName[2]
   var splitFileDate = fileName.split('_')
-  var fileDate = splitFileDate[2]
+  var fileDateXml = splitFileDate[2]
+  var fileDate = fileDateXml.split('.')[0]
   fileDate += ' 00:00:00'
   var dt = Date.parse(fileDate)
   var sql = 'DELETE FROM channel_event WHERE timestamp_start > ' + dt + ';'
@@ -414,28 +415,28 @@ async function main () {
   } catch (e) {
     console.log(e)
   }
-  const rp = require('request-promise-native')
-  var server = '127.0.0.1:3005'
-  var sql = 'SELECT MIN(timestamp_start) as start FROM channel_event'
-  var start = await db.query(sql)
-  sql = 'SELECT MAX(timestamp_end) as end FROM channel_event'
-  var end = await db.query(sql)
-  var times = start[0].start + ',' + end[0].end
-  sql = 'SELECT DISTINCT channel_display FROM channel_event'
-  var channels = await db.query(sql)
-  var epgIDs = ''
-  for (var channel of channels) {
-    epgIDs += channel.channel_display + ';'
-  }
+  // const rp = require('request-promise-native')
+  // var server = '127.0.0.1:3005'
+  // var sql = 'SELECT MIN(timestamp_start) as start FROM channel_event'
+  // var start = await db.query(sql)
+  // sql = 'SELECT MAX(timestamp_end) as end FROM channel_event'
+  // var end = await db.query(sql)
+  // var times = start[0].start + ',' + end[0].end
+  // sql = 'SELECT DISTINCT channel_display FROM channel_event'
+  // var channels = await db.query(sql)
+  // var epgIDs = ''
+  // for (var channel of channels) {
+  //   epgIDs += channel.channel_display + ';'
+  // }
 
-  var form = { time: times, userAgent: 'TapTapTV/3.0 (Web HTML5) Version/3.0', epgID: epgIDs }
-  var parseEvents = {
-    url: `http://${server}/bds/tv/event`,
-    form: form
-  }
+  // var form = { time: times, userAgent: 'TapTapTV/3.0 (Web HTML5) Version/3.0', epgID: epgIDs }
+  // var parseEvents = {
+  //   url: `http://${server}/bds/tv/event`,
+  //   form: form
+  // }
 
   try {
-    await rp.post(parseEvents)
+    // await rp.post(parseEvents)
     await downloadPictures()
     await downloadComplete()
     await clearMaps()
