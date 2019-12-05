@@ -8,7 +8,7 @@ services:
     env_file:
       - .env
     ports: 
-      - ${EPG_PORT}:3000
+      - ${EPG_PORT}:3005
     restart: always
 
   epgparser:
@@ -18,7 +18,7 @@ services:
     env_file:
       - .env
     ports: 
-      - ${EPG_PARSER_PORT}:3000
+      - ${EPG_PARSER_PORT}:3005
     volumes:
       - ./epg_xml:/usr/src/app/epg_xml
 
