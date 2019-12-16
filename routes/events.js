@@ -74,8 +74,8 @@ router.get('/category', (req, res) => { // NOT IN USE
   })
 })
 var database = require('../database.js')
-router.post('/tv/parse', (req, res) => {
-  var eventsXml = req.param('file')
+router.get('/tv/parse', (req, res) => {
+  var eventsXml = req.query.file
   db = database.main(eventsXml)
 })
 
