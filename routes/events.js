@@ -34,8 +34,8 @@ async function fillBlankEpg (epgArray) {
             var displ = epgID
             var startTimestamp = event[j + 1].str
             var endTimestamp = event[j].fin
-            var startTime = (new Date(startTimestamp - 3600000)).toISOString()
-            var endTime = (new Date(endTimestamp - 3600000)).toISOString()
+            var startTime = (new Date(startTimestamp)).toISOString()
+            var endTime = (new Date(endTimestamp)).toISOString()
             var startDate = startTime.toString().replace('T', ' ')
             startDate = startDate.slice(0, 19)
             var endDate = endTime.toString().replace('T', ' ')
@@ -74,8 +74,9 @@ router.get('/category', (req, res) => { // NOT IN USE
   })
 })
 var database = require('../database.js')
-router.get('/tv/parse', (req, res) => {
-  var eventsXml = req.query.file
+router.post('/tv/parse', (req, res) => {
+  var eventsXml = req.param('file')
+  eventsXml = './epg_xml/' + eventsXml
   db = database.main(eventsXml)
 })
 
@@ -165,7 +166,7 @@ router.post('/tv/event', async (req, res) => {
           }
           var data = { epg: dataSend, error: err }
           await fillBlankEpg(data)
-          return res.send(data)
+          // return res.send(data)
         } else {
           console.log('In cache')
 
@@ -208,7 +209,7 @@ router.post('/tv/event', async (req, res) => {
 
           var dataCache = { epg: dataSendCache, error: err }
           await fillBlankEpg(dataCache)
-          return res.send(dataCache)
+          // return res.send(dataCache)
           // redisClient.flushdb() // flush keys
           // console.log('Cache has been flushed')
         }

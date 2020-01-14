@@ -8,8 +8,8 @@ const fs = require('fs')
 dotenv.config()
 var { dbHost, dbUser, dbPassword, dbName, imageFolder } = require('./config.js') // image_folder removed
 
-var jsonProgramms = parsingxml.jsonProgramms
-var jsonChannels = parsingxml.jsonChannels
+// var jsonProgramms = parsingxml.jsonProgramms
+// var jsonChannels = parsingxml.jsonChannels
 /* This method is used string manipulation, it is needed for entering data into the database without any errors */
 
 var db = new Database({
@@ -27,23 +27,24 @@ var map4 = new HashMap() // event_category reserved for future purposes
 
 var arrayPictures = []
 
-async function insertChannels () {
+async function insertChannels (jsonObj) {
+  var jsonChannels = parsingxml.getChannels(jsonObj)
   var sql = 'SELECT display_name FROM channel'
   var rows = await db.query(sql)
   for (var element of rows) {
     map2.set(element.display_name, element.display_name)
   }
   for (element of jsonChannels) {
-    if (element.icon === undefined && !map2.has(element['@id'])) {
-      sql = 'INSERT INTO channel(display_name, lang) VALUE (' + mysql.escape(element['@id']) + ',' + mysql.escape(element['display-name']['@lang']) + ');'
+    if (element.icon === undefined && !map2.has(element['display-name']['text'])) {
+      sql = 'INSERT INTO channel(display_name, lang) VALUE (' + mysql.escape(element['display-name']['text']) + ',' + mysql.escape(element['display-name']['@lang']) + ');'
       await db.query(sql)
-      try { map2.set(element['@id'], element['@id']) } catch (e) {
+      try { map2.set(element['display-name']['text'], element['display-name']['text']) } catch (e) {
         console.log(e)
       }
-    } else if (element.icon !== undefined && !map2.has(element['@id'])) {
-      sql = 'INSERT INTO channel(display_name, lang, icon) VALUE (' + mysql.escape(element['@id']) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ')'
+    } else if (element.icon !== undefined && !map2.has(element['display-name']['text'])) {
+      sql = 'INSERT INTO channel(display_name, lang, icon) VALUE (' + mysql.escape(element['display-name']['text']) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ');'
       await db.query(sql)
-      try { map2.set(element['@id'], element['@id']) } catch (e) {
+      try { map2.set(element['display-name']['text'], element['display-name']['text']) } catch (e) {
         console.log(e)
       }
     }
@@ -51,7 +52,7 @@ async function insertChannels () {
   }
 }
 
-async function insertCategory () {
+async function insertCategory (jsonProgramms) {
   let sql = 'SELECT category_type AS category FROM category;'
 
   let l
@@ -105,14 +106,14 @@ async function getEvents () {
 
 async function deleteEvents (eventsXml) {
   var filePath = eventsXml
-  // var splitFileName = filePath.split('/')
-  // var fileName = splitFileName[2]
-  var splitFileDate = filePath.split('_')
+  var splitFileName = filePath.split('/')
+  var fileName = splitFileName[2]
+  var splitFileDate = fileName.split('_')
   var fileDateXml = splitFileDate[2]
   var fileDate = fileDateXml.split('.')[0]
   fileDate += ' 00:00:00'
   var dt = Date.parse(fileDate)
-  var sql = 'DELETE FROM channel_event WHERE timestamp_start > ' + dt + ';'
+  var sql = 'DELETE FROM channel_event WHERE timestamp_start >= ' + dt + ';'
   await db.query(sql)
 }
 
@@ -120,7 +121,7 @@ async function downloadComplete () {
   console.log('Finished downloading images.')
 }
 
-async function insertEvents () {
+async function insertEvents (jsonProgramms) {
   var date
   var episodeNumber
   var rating
@@ -239,9 +240,28 @@ async function insertEvents () {
           }
         }
       }
-
-      program.title.text = program.title.text.toString()
-      eventName = program.title.text.replace('(lang=de)', '')
+      var programTitle
+      let eventNameHash
+      var lang
+      if (program.title === undefined){
+        programTitle = null
+        eventName = ''
+        eventNameHash = ''
+        lang = ''
+      }
+      else {
+        programTitle = program.title.text.toString()
+        eventName = program.title.text.replace('(lang=de)', '')
+        eventNameHash = program.title.text
+        if (program.title['@lang'] === undefined) {
+          lang = ''
+        }
+        else {
+          lang = program.title['@lang']
+        }
+      }
+      // program.title.text = program.title.text.toString()
+      // eventName = program.title.text.replace('(lang=de)', '')
 
       var startDate = program['@start']
       var stopDate = program['@stop']
@@ -253,7 +273,7 @@ async function insertEvents () {
       // ///////////////////////////////////////////////////
       const tSum = startTimestamp + stopTimestamp
 
-      let eventNameHash = program.title.text
+      // let eventNameHash = program.title.text
 
       if (typeof eventNameHash === 'string') {
         eventNameHash = eventNameHash.replace('(lang=de)', '')
@@ -279,16 +299,19 @@ async function insertEvents () {
       }
 
       var channelName = program['@channel']
+      var sql = 'SELECT display_name FROM channel WHERE display_name = ' + mysql.escape(channelName) + ';'
+      var res = await db.query(sql)
+      var chName = res[0].display_name
 
-      var sql = 'SELECT COUNT(*) AS countChannels FROM channel WHERE display_name = ' + mysql.escape(channelName) + ';'
+      sql = 'SELECT COUNT(*) AS countChannels FROM channel WHERE display_name = ' + mysql.escape(chName) + ';'
       var resCount = await db.query(sql)
 
       if (resCount[0].countChannels > 0) {
         sql = 'INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)' +
 
           'VALUE (' + mysql.escape(startDate) + ',' + mysql.escape(stopDate) + ',' + mysql.escape(tz) + ',' + mysql.escape(startTimestamp) + ',' +
-          mysql.escape(stopTimestamp) + ',' + mysql.escape(channelName) + ',' +
-          mysql.escape(eventName || 'Unknown') + ',' + mysql.escape(program.title['@lang']) + ',' +
+          mysql.escape(stopTimestamp) + ',' + mysql.escape(chName) + ',' +
+          mysql.escape(eventName || 'Unknown') + ',' + mysql.escape(lang) + ',' +
           mysql.escape(description) + ',' + mysql.escape(rating) + ',' + mysql.escape(starRating) + ',' +
           mysql.escape(icon) + ',' + mysql.escape(episodeNumber) + ',' + mysql.escape(subtitle) + ',' + mysql.escape(date) + ',' +
           mysql.escape(country) + ',' + mysql.escape(presenter) + ',' + mysql.escape(actor) + ',' +
@@ -304,10 +327,10 @@ async function insertEvents () {
   }
 }
 
-async function insertEventCategory () {
+async function insertEventCategory (jsonProgramms) {
   var eventName
   var eventNameHash
-
+  
   var sql = 'SELECT channel_event_name AS event, category_name AS category FROM event_category;'
   var rows = await db.query(sql)
   for (var element of rows) {
@@ -359,7 +382,7 @@ async function selectChannels () {
   var sql = 'SELECT * FROM channel'
   var rows = await db.query(sql)
   for (var channel of rows) {
-    sql = 'SELECT channel_display,event_name AS tit, subtitle AS subtit, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL,  description AS `desc`,episode_number AS episodeNumber FROM channel_event WHERE channel_display =' + mysql.escape(channel.display_name) + ';'
+    sql = 'SELECT channel_display, event_name AS tit, subtitle AS subtit, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL,  description AS `desc`,episode_number AS episodeNumber FROM channel_event WHERE channel_display =' + mysql.escape(channel.display_name) + ';'
     rows = await db.query(sql)
     for (var element of rows) {
       element.lng = element.fin - element.str
@@ -379,27 +402,28 @@ async function main (eventsXml) {
   } catch (e) {
     console.log(e)
   }
-
+  var jsonObj = parsingxml.parsing(eventsXml)  
+  var jsonProgramms = await parsingxml.getProgramms(jsonObj)
   try {
-    await insertCategory()
+    await insertCategory(jsonProgramms)
   } catch (e) {
     console.log(e)
   }
 
   try {
-    await insertChannels()
+    await insertChannels(jsonObj)
   } catch (e) {
     console.log(e)
   }
 
   try {
-    await insertEvents()
+    await insertEvents(jsonProgramms)
   } catch (e) {
     console.log(e)
   }
 
   try {
-    await insertEventCategory()
+    await insertEventCategory(jsonProgramms)
   } catch (e) {
     console.log(e)
   }
@@ -415,25 +439,6 @@ async function main (eventsXml) {
   } catch (e) {
     console.log(e)
   }
-  // const rp = require('request-promise-native')
-  // var server = '127.0.0.1:3005'
-  // var sql = 'SELECT MIN(timestamp_start) as start FROM channel_event'
-  // var start = await db.query(sql)
-  // sql = 'SELECT MAX(timestamp_end) as end FROM channel_event'
-  // var end = await db.query(sql)
-  // var times = start[0].start + ',' + end[0].end
-  // sql = 'SELECT DISTINCT channel_display FROM channel_event'
-  // var channels = await db.query(sql)
-  // var epgIDs = ''
-  // for (var channel of channels) {
-  //   epgIDs += channel.channel_display + ';'
-  // }
-
-  // var form = { time: times, userAgent: 'TapTapTV/3.0 (Web HTML5) Version/3.0', epgID: epgIDs }
-  // var parseEvents = {
-  //   url: `http://${server}/bds/tv/event`,
-  //   form: form
-  // }
 
   try {
     // await rp.post(parseEvents)

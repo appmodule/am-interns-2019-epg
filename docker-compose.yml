@@ -7,20 +7,22 @@ services:
       context: .
     env_file:
       - .env
+    restart: always
     ports: 
       - ${EPG_PORT}:3005
-    restart: always
+    volumes:
+      - ./epg_xml:/workspace/epg_xml
 
-#   epgparser:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile.parser
-#     env_file:
-#       - .env
-#     ports: 
-#       - ${EPG_PARSER_PORT}:3005
-#     volumes:
-#       - ./epg_xml:/usr/src/app/epg_xml
+  # epgparser:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.parser
+  #   env_file:
+  #     - .env
+  #   ports: 
+  #     - ${EPG_PARSER_PORT}:3005
+  #   volumes:
+  #     - ./epg_xml:/usr/src/app/epg_xml
 
   db:
     build:
