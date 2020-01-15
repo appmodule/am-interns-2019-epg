@@ -442,7 +442,7 @@ async function main (eventsXml) {
 
   try {
     // await rp.post(parseEvents)
-    await downloadPictures()
+    // await downloadPictures()
     await downloadComplete()
     await clearMaps()
   } catch (e) {
@@ -463,31 +463,36 @@ async function downloadPictures () {
 
   // const downladArr = []
   for (var pic of arrayPictures) {
-    var folderNames = pic.dest.split('/')
-    var folderNameFirst = imageFolder + '/' + folderNames[2]
-    if (!fs.existsSync(folderNameFirst)) {
-      fs.mkdirSync(folderNameFirst)
-    }
-    var folderNameSecond = pic.dest
-    if (!fs.existsSync(folderNameSecond)) {
-      fs.mkdirSync(folderNameSecond)
-    }
-
     try {
-      await downloadIMG(pic)
+      var folderNames = pic.dest.split('/')
+      var folderNameFirst = imageFolder + '/' + folderNames[2]
+      if (!fs.existsSync(folderNameFirst)) {
+        fs.mkdirSync(folderNameFirst)
+      }
+      var folderNameSecond = pic.dest
+      if (!fs.existsSync(folderNameSecond)) {
+        fs.mkdirSync(folderNameSecond)
+      }
+
+      var picName = pic.url.lastIndexOf('/')
+      picName = pic.url.substring(picName, pic.url.size)
+      var picPath = pic.dest + picName
+      if (!fs.existsSync(picPath)) {
+        await downloader.image(pic)
+      }
     } catch (e) {
       console.log(e)
     }
   }
 }
 
-async function downloadIMG (option) {
-  return downloader.image(option)
-    .then(console.log('saved image'))
-    .catch(e => {
-      var content = e + '\r\n'
-      fs.appendFile('errors.txt', content)
-      console.log('ERROR SAVING IMAGE')
-    })
-}
+// async function downloadIMG (option) {
+//   return downloader.image(option)
+//     .then(console.log('saved image'))
+//     .catch(e => {
+//       var content = e + '\r\n'
+//       fs.appendFile('errors.txt', content)
+//       console.log('ERROR SAVING IMAGE')
+//     })
+// }
 module.exports = { db, main }

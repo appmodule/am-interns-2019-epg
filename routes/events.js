@@ -4,6 +4,9 @@ var myCache
 var mysql = require('mysql')
 var db
 var redis = require('redis')
+var dotenv = require('dotenv')
+dotenv.config()
+var { imgPrefix } = require('../config.js')
 
 var redisClient = redis.createClient({ host: 'Redis', port: 6379 })
 redisClient.on('ready', function () {
@@ -88,6 +91,9 @@ router.post('/tv/event', async (req, res) => {
   if (typeof req.body.time !== 'undefined' || typeof req.body.epgID !== 'undefined') {
     // time is given in the 'startTime,endtime' format so we need to divide it
     var time = req.body.time
+    if (time[time.length - 1] === ';') {
+      time = time.substring(0, time.length - 1)
+    }
     const timestamps = time.split(';')
     const tstarts = []
     const tends = []
@@ -100,6 +106,9 @@ router.post('/tv/event', async (req, res) => {
 
     // we also get a number of channels whose events we need to extract and they are in the format Channel1;Channel2;Channel3...
     let epgChannels = req.body.epgID
+    if (epgChannels[epgChannels.length - 1] !== ';') {
+      epgChannels += ';'
+    }
     epgChannels = epgChannels.split(';')
     while (epgChannels.indexOf('') > 0) {
       epgChannels.splice(epgChannels.indexOf(''), 1)
@@ -116,10 +125,12 @@ router.post('/tv/event', async (req, res) => {
           console.log('Not in cache')
           for (var j = 0; j < tstarts.length; j++) {
             for (var channel of epgChannels) {
-              const sql = `SELECT channel_display, event_name AS tit, subtitle AS subtit, lang AS lng, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, icon AS URL, description AS descr, episode_number AS episodeNumber FROM channel_event WHERE channel_display = ${mysql.escape(channel)} AND timestamp_end BETWEEN ${tstarts[j]} AND ${tends[j]} AND timestamp_start BETWEEN ${tstarts[j]} AND ${tends[j]}`
+              const sql = `SELECT channel_display, event_name AS tit, subtitle AS subtit, lang AS lng, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, image AS URL, description AS descr, episode_number AS episodeNumber FROM channel_event WHERE channel_display = ${mysql.escape(channel)} AND timestamp_end BETWEEN ${tstarts[j]} AND ${tends[j]} AND timestamp_start BETWEEN ${tstarts[j]} AND ${tends[j]}`
               var rows = await db.query(sql)
               for (var r of rows) {
-                events += `${r.tit}~${r.subtit}~${r.lng}~${r.str}~${r.timeStr}~${r.timeEnd}~${r.fin}~${r.id}~${r.URL}~${r.descr}~${r.episodeNumber}{`
+                var url = r.URL
+                var imgURL = imgPrefix + url.substr(1)
+                events += `${r.tit}~${r.subtit}~${r.lng}~${r.str}~${r.timeStr}~${r.timeEnd}~${r.fin}~${r.id}~${imgURL}~${r.descr}~${r.episodeNumber}{`
               }
               events += '^'
             }
@@ -166,7 +177,7 @@ router.post('/tv/event', async (req, res) => {
           }
           var data = { epg: dataSend, error: err }
           await fillBlankEpg(data)
-          // return res.send(data)
+          return res.send(data)
         } else {
           console.log('In cache')
 
@@ -209,7 +220,7 @@ router.post('/tv/event', async (req, res) => {
 
           var dataCache = { epg: dataSendCache, error: err }
           await fillBlankEpg(dataCache)
-          // return res.send(dataCache)
+          return res.send(dataCache)
           // redisClient.flushdb() // flush keys
           // console.log('Cache has been flushed')
         }

@@ -40,7 +40,7 @@ CREATE TABLE `channel_event` (
   `rating` varchar(30) COLLATE utf8_bin DEFAULT 'null',
   `star_rating` varchar(4) COLLATE utf8_bin DEFAULT 'null',
   `icon` varchar(255) COLLATE utf8_bin DEFAULT 'null',
-  `image` blob,
+  `image` varchar(1000) COLLATE utf8_bin DEFAULT 'null',
   `episode_number` varchar(80) COLLATE utf8_bin DEFAULT 'null',
   `subtitle` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `date` varchar(4) COLLATE utf8_bin DEFAULT 'null',
