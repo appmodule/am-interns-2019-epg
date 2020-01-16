@@ -15,4 +15,4 @@ RUN apt update && apt install -y vim
 # Bundle app source
 COPY . .
 
-CMD ["/wait-for-it.sh", "db:3306", "--", "node", "index.js" ]
+CMD ["./wait-for-it.sh", "db:3306", "--", "node", "index.js" ]
