@@ -95,8 +95,8 @@ router.get('/tv/parse', async (req, res) => {
   //     throw connectionError
   //   }
   // })
-  await database.main(eventsXml)
-  return res.send({ message: 'Parsing started' })
+  database.main(eventsXml)
+  return res.json({ message: 'Parsing started' })
 })
 
 router.post('/tv/event', async (req, res) => {

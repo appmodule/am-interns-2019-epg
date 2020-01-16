@@ -12,7 +12,7 @@ services:
       - ${EPG_PORT}:3005
     volumes:
       - ./epg_xml:/workspace/epg_xml
-      - ./images:/workspace/images
+      - ./public:/workspace/public
 
   # epgparser:
   #   build:
