@@ -64,7 +64,11 @@ async function getProgramms (jsonObj) {
     })
   }
 
-  await writePromise(jsonFileWrite, dataJson)
+  try {
+    await writePromise(jsonFileWrite, dataJson)
+  } catch (e) {
+    console.log(e)
+  }
 
   const programmeArr = []
 

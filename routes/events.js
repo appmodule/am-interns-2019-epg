@@ -2,11 +2,13 @@ var express = require('express')
 var router = express.Router()
 var myCache
 var mysql = require('mysql')
-var db
+// var db
+var Database = require('../databaseclass.js')
 var redis = require('redis')
 var dotenv = require('dotenv')
 dotenv.config()
-var { imgPrefix } = require('../config.js')
+// var { imgPrefix } = require('../config.js')
+var { dbHost, dbUser, dbPassword, dbName, imageFolder, imgPrefix } = require('../config.js')
 
 var redisClient = redis.createClient({ host: 'Redis', port: 6379 })
 redisClient.on('ready', function () {
@@ -64,6 +66,7 @@ async function fillBlankEpg (epgArray) {
       i++
     }
   }
+  db.close()
 }
 // ////////////////////////////REST API///////////////////////////////
 var sqlAPI
@@ -76,17 +79,29 @@ router.get('/category', (req, res) => { // NOT IN USE
     return res.send({ error: false, data: results, message: 'categories' })
   })
 })
-var database = require('../database.js')
+
 router.post('/tv/parse', (req, res) => {
   var eventsXml = req.param('file')
   eventsXml = './epg_xml/' + eventsXml
-  db = database.main(eventsXml)
+  var database = require('../database.js')
+  // var db = new Database({
+  //   host: dbHost,
+  //   user: dbUser,
+  //   password: dbPassword,
+  //   database: dbName
+  // })
+  // db.connection.connect(async (connectionError) => {
+  //   if (connectionError) {
+  //     throw connectionError
+  //   }
+  // })
+  var db = database.main(eventsXml)
 })
 
 router.post('/tv/event', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   var databasepullonly = require('../databasepullonly.js')
-  db = databasepullonly.db
+  var db = databasepullonly.db
 
   if (typeof req.body.time !== 'undefined' || typeof req.body.epgID !== 'undefined') {
     // time is given in the 'startTime,endtime' format so we need to divide it
@@ -129,13 +144,20 @@ router.post('/tv/event', async (req, res) => {
               var rows = await db.query(sql)
               for (var r of rows) {
                 var url = r.URL
-                var imgURL = imgPrefix + url.substr(1)
+                var imgURL
+                if (url !== null) {
+                  imgURL = imgPrefix + url.substr(1)
+                }
+                else {
+                  imgURL = ''
+                }
                 events += `${r.tit}~${r.subtit}~${r.lng}~${r.str}~${r.timeStr}~${r.timeEnd}~${r.fin}~${r.id}~${imgURL}~${r.descr}~${r.episodeNumber}{`
               }
               events += '^'
             }
             events += '}'
           }
+          db.close()
           redisClient.set(key, events)
           var ttl = 60 * 60 * 6 // 6 hours
           redisClient.expire(key, ttl) // key expires in 6 hours

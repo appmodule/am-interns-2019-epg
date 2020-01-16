@@ -35,16 +35,16 @@ async function insertChannels (jsonObj) {
     map2.set(element.display_name, element.display_name)
   }
   for (element of jsonChannels) {
-    if (element.icon === undefined && !map2.has(element['display-name']['text'])) {
-      sql = 'INSERT INTO channel(display_name, lang) VALUE (' + mysql.escape(element['display-name']['text']) + ',' + mysql.escape(element['display-name']['@lang']) + ');'
+    if (element.icon === undefined && !map2.has(element['display-name'].text)) {
+      sql = 'INSERT INTO channel(display_name, lang) VALUE (' + mysql.escape(element['display-name'].text) + ',' + mysql.escape(element['display-name']['@lang']) + ');'
       await db.query(sql)
-      try { map2.set(element['display-name']['text'], element['display-name']['text']) } catch (e) {
+      try { map2.set(element['display-name'].text, element['display-name'].text) } catch (e) {
         console.log(e)
       }
-    } else if (element.icon !== undefined && !map2.has(element['display-name']['text'])) {
-      sql = 'INSERT INTO channel(display_name, lang, icon) VALUE (' + mysql.escape(element['display-name']['text']) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ');'
+    } else if (element.icon !== undefined && !map2.has(element['display-name'].text)) {
+      sql = 'INSERT INTO channel(display_name, lang, icon) VALUE (' + mysql.escape(element['display-name'].text) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ');'
       await db.query(sql)
-      try { map2.set(element['display-name']['text'], element['display-name']['text']) } catch (e) {
+      try { map2.set(element['display-name'].text, element['display-name'].text) } catch (e) {
         console.log(e)
       }
     }
@@ -243,20 +243,18 @@ async function insertEvents (jsonProgramms) {
       var programTitle
       let eventNameHash
       var lang
-      if (program.title === undefined){
+      if (program.title === undefined) {
         programTitle = null
         eventName = ''
         eventNameHash = ''
         lang = ''
-      }
-      else {
+      } else {
         programTitle = program.title.text.toString()
         eventName = program.title.text.replace('(lang=de)', '')
         eventNameHash = program.title.text
         if (program.title['@lang'] === undefined) {
           lang = ''
-        }
-        else {
+        } else {
           lang = program.title['@lang']
         }
       }
@@ -297,6 +295,9 @@ async function insertEvents (jsonProgramms) {
         img = opt.dest + img
         arrayPictures.push(opt)
       }
+      else {
+        console.log('icon is null')
+      }
 
       var channelName = program['@channel']
       var sql = 'SELECT display_name FROM channel WHERE display_name = ' + mysql.escape(channelName) + ';'
@@ -330,7 +331,7 @@ async function insertEvents (jsonProgramms) {
 async function insertEventCategory (jsonProgramms) {
   var eventName
   var eventNameHash
-  
+
   var sql = 'SELECT channel_event_name AS event, category_name AS category FROM event_category;'
   var rows = await db.query(sql)
   for (var element of rows) {
@@ -402,7 +403,7 @@ async function main (eventsXml) {
   } catch (e) {
     console.log(e)
   }
-  var jsonObj = parsingxml.parsing(eventsXml)  
+  var jsonObj = parsingxml.parsing(eventsXml)
   var jsonProgramms = await parsingxml.getProgramms(jsonObj)
   try {
     await insertCategory(jsonProgramms)
@@ -439,6 +440,7 @@ async function main (eventsXml) {
   } catch (e) {
     console.log(e)
   }
+  db.close()
 
   try {
     // await rp.post(parseEvents)
