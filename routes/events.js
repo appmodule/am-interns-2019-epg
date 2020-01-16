@@ -80,7 +80,7 @@ var sqlAPI
 //   })
 // })
 
-router.get('/tv/parse', (req, res) => {
+router.get('/tv/parse', async (req, res) => {
   var eventsXml = req.param('file')
   eventsXml = './epg_xml/' + eventsXml
   var database = require('../database.js')
@@ -95,7 +95,7 @@ router.get('/tv/parse', (req, res) => {
   //     throw connectionError
   //   }
   // })
-  var db = database.main(eventsXml)
+  await database.main(eventsXml)
   return res.send({ message: 'Parsing started' })
 })
 

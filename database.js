@@ -240,16 +240,16 @@ async function insertEvents (jsonProgramms) {
           }
         }
       }
-      var programTitle
+      // var programTitle
       let eventNameHash
       var lang
       if (program.title === undefined) {
-        programTitle = null
+        // programTitle = null
         eventName = ''
         eventNameHash = ''
         lang = ''
       } else {
-        programTitle = program.title.text.toString()
+        // programTitle = program.title.text.toString()
         eventName = program.title.text.replace('(lang=de)', '')
         eventNameHash = program.title.text
         if (program.title['@lang'] === undefined) {
