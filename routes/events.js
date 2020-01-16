@@ -80,7 +80,7 @@ router.get('/category', (req, res) => { // NOT IN USE
   })
 })
 
-router.post('/tv/parse', (req, res) => {
+router.get('/tv/parse', (req, res) => {
   var eventsXml = req.param('file')
   eventsXml = './epg_xml/' + eventsXml
   var database = require('../database.js')
@@ -96,6 +96,7 @@ router.post('/tv/parse', (req, res) => {
   //   }
   // })
   var db = database.main(eventsXml)
+  return res.send({ message: 'Parsing started' })
 })
 
 router.post('/tv/event', async (req, res) => {

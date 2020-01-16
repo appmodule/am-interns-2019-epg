@@ -9,14 +9,16 @@ var events = require('./routes/events')
 var app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
-app.use(express.static(path.join(__dirname, 'public')))
+// app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(__dirname))
 
 app.set('view engine', 'jade')
 
 app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
-app.use(express.static(path.join(__dirname, 'public')))
+// app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(__dirname))
 
 app.use('/bds', events)
 // const rp = require('request-promise-native')

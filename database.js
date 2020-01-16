@@ -20,10 +20,10 @@ var db = new Database({
 })
 
 // var myCache = new NodeCache({ stdTTL: 60 * 60 * 24 })
-var map = new HashMap() // cat
-var map2 = new HashMap() // channel
-var map3 = new HashMap() // event
-var map4 = new HashMap() // event_category reserved for future purposes
+var mapCategory = new HashMap() // cat
+var mapChannel = new HashMap() // channel
+var mapEvent = new HashMap() // event
+var mapEventCategory = new HashMap() // event_category reserved for future purposes
 
 var arrayPictures = []
 
@@ -32,19 +32,19 @@ async function insertChannels (jsonObj) {
   var sql = 'SELECT display_name FROM channel'
   var rows = await db.query(sql)
   for (var element of rows) {
-    map2.set(element.display_name, element.display_name)
+    mapChannel.set(element.display_name, element.display_name)
   }
   for (element of jsonChannels) {
-    if (element.icon === undefined && !map2.has(element['display-name'].text)) {
+    if (element.icon === undefined && !mapChannel.has(element['display-name'].text)) {
       sql = 'INSERT INTO channel(display_name, lang) VALUE (' + mysql.escape(element['display-name'].text) + ',' + mysql.escape(element['display-name']['@lang']) + ');'
       await db.query(sql)
-      try { map2.set(element['display-name'].text, element['display-name'].text) } catch (e) {
+      try { mapChannel.set(element['display-name'].text, element['display-name'].text) } catch (e) {
         console.log(e)
       }
-    } else if (element.icon !== undefined && !map2.has(element['display-name'].text)) {
+    } else if (element.icon !== undefined && !mapChannel.has(element['display-name'].text)) {
       sql = 'INSERT INTO channel(display_name, lang, icon) VALUE (' + mysql.escape(element['display-name'].text) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ');'
       await db.query(sql)
-      try { map2.set(element['display-name'].text, element['display-name'].text) } catch (e) {
+      try { mapChannel.set(element['display-name'].text, element['display-name'].text) } catch (e) {
         console.log(e)
       }
     }
@@ -63,8 +63,8 @@ async function insertCategory (jsonProgramms) {
         for (element of element.category) {
           element.text = element.text.toString()
           l = element.text.replace('(lang=de)', '')
-          if (!map.has(l)) {
-            map.set(l, l)
+          if (!mapCategory.has(l)) {
+            mapCategory.set(l, l)
             sql = 'SELECT COUNT(*) as cc FROM category WHERE category_type = ' + mysql.escape(l) + ';'
             var ql = await db.query(sql)
             if (ql[0].cc === 0) {
@@ -78,8 +78,8 @@ async function insertCategory (jsonProgramms) {
       } else {
         l = element.category.text.toString()
         l = l.replace('(lang=de)', '')
-        if (!map.has(l)) {
-          map.set(l, l)
+        if (!mapCategory.has(l)) {
+          mapCategory.set(l, l)
           sql = 'SELECT COUNT(*) as cc FROM category WHERE category_type = ' + mysql.escape(l) + ';'
           ql = await db.query(sql)
           if (ql[0].cc === 0) {
@@ -100,7 +100,7 @@ async function getEvents () {
 
   for (var element of rows) {
     const tCombine = element.timestamp_start + element.timestamp_end
-    map3.set(element.event_name + tCombine + element.channel_display, element.event_name + tCombine + element.channel_display)
+    mapEvent.set(element.event_name + tCombine + element.channel_display, element.event_name + tCombine + element.channel_display)
   }
 }
 
@@ -278,7 +278,7 @@ async function insertEvents (jsonProgramms) {
         eventNameHash = eventNameHash.replace('\\u', 'u')
       }
 
-      if (map3.has(eventNameHash + tSum + program['@channel'])) {
+      if (mapEvent.has(eventNameHash + tSum + program['@channel'])) {
         return // continue
       }
 
@@ -320,7 +320,7 @@ async function insertEvents (jsonProgramms) {
 
         await db.query(sql)
 
-        await map3.set(eventNameHash + tSum + program['@channel'], eventName + tSum + program['@channel'])
+        await mapEvent.set(eventNameHash + tSum + program['@channel'], eventName + tSum + program['@channel'])
       }
     } catch (e) {
       console.log(e)
@@ -335,7 +335,7 @@ async function insertEventCategory (jsonProgramms) {
   var sql = 'SELECT channel_event_name AS event, category_name AS category FROM event_category;'
   var rows = await db.query(sql)
   for (var element of rows) {
-    map4.set(element.event + element.category, element.event + element.category)
+    mapEventCategory.set(element.event + element.category, element.event + element.category)
   }
   let l
   let tmp
@@ -354,24 +354,24 @@ async function insertEventCategory (jsonProgramms) {
     if (Array.isArray(element.category)) {
       for (var el of element.category) {
         tmp = l = el.text.replace('(lang=de)', '')
-        if (!map4.has(eventNameHash + l)) {
+        if (!mapEventCategory.has(eventNameHash + l)) {
           sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
           var sqlRes = await db.query(sql)
           if (sqlRes[0].countEvents > 0) {
             sql = 'INSERT INTO event_category(channel_event_name, category_name) VALUE (' + mysql.escape(eventName) + ', ' + mysql.escape(l) + ');'
-            map4.set(eventNameHash + tmp, eventNameHash + tmp)
+            mapEventCategory.set(eventNameHash + tmp, eventNameHash + tmp)
             await db.query(sql)
           }
         }
       }
     } else {
       tmp = l = element.category.text
-      if (!map4.has(eventNameHash + l)) {
+      if (!mapEventCategory.has(eventNameHash + l)) {
         sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
         sqlRes = await db.query(sql)
         if (sqlRes[0].countEvents > 0) {
           sql = 'INSERT INTO event_category(channel_event_name, category_name) VALUE (' + mysql.escape(eventName) + ', ' + mysql.escape(l) + ');'
-          map4.set(eventNameHash + tmp, eventNameHash + tmp)
+          mapEventCategory.set(eventNameHash + tmp, eventNameHash + tmp)
           await db.query(sql)
         }
       }
@@ -391,10 +391,10 @@ async function selectChannels () {
   }
 }
 async function clearMaps () {
-  map.clear()
-  map2.clear()
-  map3.clear()
-  map4.clear()
+  mapCategory.clear()
+  mapChannel.clear()
+  mapEvent.clear()
+  mapEventCategory.clear()
 }
 
 async function main (eventsXml) {
@@ -403,6 +403,7 @@ async function main (eventsXml) {
   } catch (e) {
     console.log(e)
   }
+  console.log('Parsing started ...')
   var jsonObj = parsingxml.parsing(eventsXml)
   var jsonProgramms = await parsingxml.getProgramms(jsonObj)
   try {
@@ -442,6 +443,7 @@ async function main (eventsXml) {
   }
   db.close()
 
+  console.log('Parsing finished')
   try {
     // await rp.post(parseEvents)
     // await downloadPictures()
