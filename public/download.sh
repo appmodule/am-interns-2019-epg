@@ -3,7 +3,7 @@
 # This script is starting from Docker Host, future improvement can be to be started
 # from container after parsing is done
 
-source ../env
+source ../.env
 
 START_DATE=`date +%Y-%m-%d -d "yesterday"`
 sed -i -r "s/(start > \")(.*)(\")/\1${START_DATE}\3/" export.sql
