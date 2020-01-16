@@ -70,15 +70,15 @@ async function fillBlankEpg (epgArray) {
 }
 // ////////////////////////////REST API///////////////////////////////
 var sqlAPI
-router.get('/category', (req, res) => { // NOT IN USE
-  sqlAPI = 'SELECT category_type FROM category'
-  db.connection.query(sqlAPI, (error, results, fields) => {
-    if (error) {
-      throw error
-    }
-    return res.send({ error: false, data: results, message: 'categories' })
-  })
-})
+// router.get('/category', (req, res) => { // NOT IN USE
+//   sqlAPI = 'SELECT category_type FROM category'
+//   db.connection.query(sqlAPI, (error, results, fields) => {
+//     if (error) {
+//       throw error
+//     }
+//     return res.send({ error: false, data: results, message: 'categories' })
+//   })
+// })
 
 router.get('/tv/parse', (req, res) => {
   var eventsXml = req.param('file')

@@ -294,8 +294,7 @@ async function insertEvents (jsonProgramms) {
         opt.dest = opt.dest + '/' + img[1] + '/' + img[2]
         img = opt.dest + img
         arrayPictures.push(opt)
-      }
-      else {
+      } else {
         console.log('icon is null')
       }
 
