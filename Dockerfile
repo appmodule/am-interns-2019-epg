@@ -11,7 +11,7 @@ COPY package*.json ./
 
 RUN npm install --only=production
 
-RUN apt update && apt install -y vim
+RUN apt update && apt install -y vim mysql-client
 # Bundle app source
 COPY . .
 

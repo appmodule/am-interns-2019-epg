@@ -12,7 +12,8 @@ services:
       - ${EPG_PORT}:3005
     volumes:
       - ./epg_xml:/workspace/epg_xml
-      - ./public:/workspace/public
+      - ./public:/workspace/public # export executing from Docker HOST
+      - export:/workspace/export
 
   # epgparser:
   #   build:
@@ -34,7 +35,7 @@ services:
       MYSQL_DATABASE: ${DB_DATABASE}
     volumes:
       - ./db_instances:/var/lib/mysql
-
+      - export:/tmp/mysql-export
   
   Redis:
     image: sameersbn/redis:4.0.9-3
@@ -49,3 +50,7 @@ services:
       - ${ADMINER_PORT}:8080
     depends_on:
       - db
+
+volumes:
+  export:
+    driver: local 

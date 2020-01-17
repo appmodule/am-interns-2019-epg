@@ -7,13 +7,21 @@ source ../.env
 
 START_DATE=`date +%Y-%m-%d -d "yesterday"`
 sed -i -r "s/(start > \")(.*)(\")/\1${START_DATE}\3/" export.sql
-docker exec am-interns-2019-epg_db_1 bash -c "rm /var/lib/mysql/export.csv"
-docker cp export.sql am-interns-2019-epg_db_1:/
-docker exec am-interns-2019-epg_db_1 bash -c "mysql -u root -p${DB_PASSWORD} < /export.sql"
+
+## Executing from Docker HOST
+# docker exec am-interns-2019-epg_db_1 bash -c "rm /var/lib/mysql/export.csv"
+# docker cp export.sql am-interns-2019-epg_db_1:/
+# docker exec am-interns-2019-epg_db_1 bash -c "mysql -u root -p${DB_PASSWORD} < /export.sql"
+# EXPORT="../db_instances/export.csv"
+
+## Executing inside container
+EXPORT="../export/export.csv"
+rm $EXPORT
+mysql -h db -u root -p${DB_PASSWORD} < export.sql
 
 MAX_CONCURRENT=20
 n=0
-cat ../db_instances/export.csv  \
+cat $EXPORT  \
 | while read url
 do
     {
