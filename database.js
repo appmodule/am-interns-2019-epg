@@ -440,7 +440,7 @@ async function main (eventsXml) {
   } catch (e) {
     console.log(e)
   }
-  db.close()
+  // db.close()
 
   console.log('Parsing finished')
   try {

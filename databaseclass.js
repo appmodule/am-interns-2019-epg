@@ -2,26 +2,28 @@ var mysql = require('mysql')
 
 class Database {
   constructor (config) {
-    this.connection = mysql.createConnection(config)
+    this.config = config
   }
 
   query (sql) {
     return new Promise((resolve, reject) => {
-      this.connection.query(sql, (err, rows) => {
+      let connection = mysql.createConnection(this.config)
+      connection.query(sql, (err, rows) => {
         if (err) return reject(err)
+        connection.end()
         resolve(rows)
       })
     })
   }
 
-  close () {
-    return new Promise((resolve, reject) => {
-      this.connection.end(err => {
-        if (err) return reject(err)
-        resolve()
-      })
-    })
-  }
+  // close () {
+  //   return new Promise((resolve, reject) => {
+  //     this.connection.end(err => {
+  //       if (err) return reject(err)
+  //       resolve()
+  //     })
+  //   })
+  // }
 }
 
 module.exports = Database

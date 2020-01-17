@@ -66,7 +66,7 @@ async function fillBlankEpg (epgArray) {
       i++
     }
   }
-  db.close()
+  // db.close()
 }
 // ////////////////////////////REST API///////////////////////////////
 var sqlAPI
@@ -158,7 +158,7 @@ router.post('/tv/event', async (req, res) => {
             }
             events += '}'
           }
-          db.close()
+          // db.close()
           redisClient.set(key, events)
           var ttl = 60 * 60 * 6 // 6 hours
           redisClient.expire(key, ttl) // key expires in 6 hours
