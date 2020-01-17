@@ -6,5 +6,5 @@ FROM
     channel_event
 WHERE 
     start > "2020-01-12"
-INTO OUTFILE '/var/lib/mysql/export.csv'
+INTO OUTFILE '/tmp/mysql-export/export.csv'
 LINES TERMINATED BY '\r\n';
