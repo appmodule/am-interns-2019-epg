@@ -5,6 +5,7 @@ var parsingxml = require('./parsingxml')
 var Database = require('./databaseclass.js')
 var dotenv = require('dotenv')
 const fs = require('fs')
+const cp = require('child_process')
 dotenv.config()
 var { dbHost, dbUser, dbPassword, dbName, imageFolder } = require('./config.js') // image_folder removed
 
@@ -27,7 +28,7 @@ var mapEventCategory = new HashMap() // event_category reserved for future purpo
 
 var arrayPictures = []
 
-async function insertChannels (jsonObj) {
+async function insertChannels(jsonObj) {
   var jsonChannels = parsingxml.getChannels(jsonObj)
   var sql = 'SELECT display_name FROM channel'
   var rows = await db.query(sql)
@@ -52,7 +53,7 @@ async function insertChannels (jsonObj) {
   }
 }
 
-async function insertCategory (jsonProgramms) {
+async function insertCategory(jsonProgramms) {
   let sql = 'SELECT category_type AS category FROM category;'
 
   let l
@@ -94,7 +95,7 @@ async function insertCategory (jsonProgramms) {
   }
 }
 
-async function getEvents () {
+async function getEvents() {
   var sql = 'SELECT event_name, channel_display, timestamp_start, timestamp_end FROM channel_event;'
   var rows = await db.query(sql)
 
@@ -104,7 +105,7 @@ async function getEvents () {
   }
 }
 
-async function deleteEvents (eventsXml) {
+async function deleteEvents(eventsXml) {
   var filePath = eventsXml
   var splitFileName = filePath.split('/')
   var fileName = splitFileName[2]
@@ -117,11 +118,11 @@ async function deleteEvents (eventsXml) {
   await db.query(sql)
 }
 
-async function downloadComplete () {
+async function downloadComplete() {
   console.log('Finished downloading images.')
 }
 
-async function insertEvents (jsonProgramms) {
+async function insertEvents(jsonProgramms) {
   var date
   var episodeNumber
   var rating
@@ -299,18 +300,19 @@ async function insertEvents (jsonProgramms) {
       }
 
       var channelName = program['@channel']
-      var sql = 'SELECT display_name FROM channel WHERE display_name = ' + mysql.escape(channelName) + ';'
-      var res = await db.query(sql)
-      var chName = res[0].display_name
+      // var sql = 'SELECT display_name FROM channel WHERE display_name = ' + mysql.escape(channelName) + ';'
+      // var res = await db.query(sql)
+      // var chName = res[0].display_name
 
-      sql = 'SELECT COUNT(*) AS countChannels FROM channel WHERE display_name = ' + mysql.escape(chName) + ';'
-      var resCount = await db.query(sql)
+      // var sql = 'SELECT COUNT(*) AS countChannels FROM channel WHERE display_name = ' + mysql.escape(channelName) + ';'
+      // var resCount = await db.query(sql)
 
-      if (resCount[0].countChannels > 0) {
-        sql = 'INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)' +
+      // if (resCount[0].countChannels > 0) {
+      if (mapChannel.has(channelName)) {
+        var sql = 'INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)' +
 
           'VALUE (' + mysql.escape(startDate) + ',' + mysql.escape(stopDate) + ',' + mysql.escape(tz) + ',' + mysql.escape(startTimestamp) + ',' +
-          mysql.escape(stopTimestamp) + ',' + mysql.escape(chName) + ',' +
+          mysql.escape(stopTimestamp) + ',' + mysql.escape(channelName) + ',' +
           mysql.escape(eventName || 'Unknown') + ',' + mysql.escape(lang) + ',' +
           mysql.escape(description) + ',' + mysql.escape(rating) + ',' + mysql.escape(starRating) + ',' +
           mysql.escape(icon) + ',' + mysql.escape(episodeNumber) + ',' + mysql.escape(subtitle) + ',' + mysql.escape(date) + ',' +
@@ -327,7 +329,7 @@ async function insertEvents (jsonProgramms) {
   }
 }
 
-async function insertEventCategory (jsonProgramms) {
+async function insertEventCategory(jsonProgramms) {
   var eventName
   var eventNameHash
 
@@ -349,14 +351,16 @@ async function insertEventCategory (jsonProgramms) {
       eventName = 'No title'
     }
     eventNameHash = eventName.replace('\\u', 'u')
+    var tsSum = element.start_timestamp + element.stop_timestamp
 
     if (Array.isArray(element.category)) {
       for (var el of element.category) {
         tmp = l = el.text.replace('(lang=de)', '')
         if (!mapEventCategory.has(eventNameHash + l)) {
-          sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
-          var sqlRes = await db.query(sql)
-          if (sqlRes[0].countEvents > 0) {
+          // sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
+          // var sqlRes = await db.query(sql)
+          // if (sqlRes[0].countEvents > 0) {
+          if (mapEvent.has(eventNameHash + tsSum + element['@channel'])) {
             sql = 'INSERT INTO event_category(channel_event_name, category_name) VALUE (' + mysql.escape(eventName) + ', ' + mysql.escape(l) + ');'
             mapEventCategory.set(eventNameHash + tmp, eventNameHash + tmp)
             await db.query(sql)
@@ -366,9 +370,10 @@ async function insertEventCategory (jsonProgramms) {
     } else {
       tmp = l = element.category.text
       if (!mapEventCategory.has(eventNameHash + l)) {
-        sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
-        sqlRes = await db.query(sql)
-        if (sqlRes[0].countEvents > 0) {
+        // sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
+        // sqlRes = await db.query(sql)
+        // if (sqlRes[0].countEvents > 0) {
+        if (mapEvent.has(eventNameHash + tsSum + element['@channel'])) {
           sql = 'INSERT INTO event_category(channel_event_name, category_name) VALUE (' + mysql.escape(eventName) + ', ' + mysql.escape(l) + ');'
           mapEventCategory.set(eventNameHash + tmp, eventNameHash + tmp)
           await db.query(sql)
@@ -378,7 +383,7 @@ async function insertEventCategory (jsonProgramms) {
   }
 }
 
-async function selectChannels () {
+async function selectChannels() {
   var sql = 'SELECT * FROM channel'
   var rows = await db.query(sql)
   for (var channel of rows) {
@@ -389,14 +394,14 @@ async function selectChannels () {
     }
   }
 }
-async function clearMaps () {
+async function clearMaps() {
   mapCategory.clear()
   mapChannel.clear()
   mapEvent.clear()
   mapEventCategory.clear()
 }
 
-async function main (eventsXml) {
+async function main(eventsXml) {
   try {
     await deleteEvents(eventsXml)
   } catch (e) {
@@ -429,24 +434,25 @@ async function main (eventsXml) {
     console.log(e)
   }
 
-  try {
-    await selectChannels()
-  } catch (e) {
-    console.log(e)
-  }
+  // try {
+  //   await selectChannels()
+  // } catch (e) {
+  //   console.log(e)
+  // }
 
-  try {
-    await getEvents()
-  } catch (e) {
-    console.log(e)
-  }
+  // try {
+  //   await getEvents()
+  // } catch (e) {
+  //   console.log(e)
+  // }
   // db.close()
 
   console.log('Parsing finished')
   try {
     // await rp.post(parseEvents)
     // await downloadPictures()
-    await downloadComplete()
+    await execShellCommand()
+    // await downloadComplete()
     await clearMaps()
   } catch (e) {
     console.log(e)
@@ -459,7 +465,18 @@ db.connection.connect(async (connectionError) => {
   }
 })
 
-async function downloadPictures () {
+async function execShellCommand () {
+  // var child = cp.spawn('./download.sh', [], { cwd: '/workspace/public', shell: true })
+  var child = cp.spawn('cd public && ./download.sh', [], { shell: true })
+  child.stdout.on('data', (data) => {
+    console.log('saved picture')
+  })
+  child.stderr.on('data', (err) => {
+    console.log(err.toString())
+  })
+}
+
+async function downloadPictures() {
   if (!fs.existsSync(imageFolder)) {
     fs.mkdirSync(imageFolder)
   }
