@@ -295,9 +295,10 @@ async function insertEvents(jsonProgramms) {
         opt.dest = opt.dest + '/' + img[1] + '/' + img[2]
         img = opt.dest + img
         arrayPictures.push(opt)
-      } else {
-        console.log('icon is null')
       }
+      // } else {
+      //   console.log('icon is null')
+      // }
 
       var channelName = program['@channel']
       // var sql = 'SELECT display_name FROM channel WHERE display_name = ' + mysql.escape(channelName) + ';'

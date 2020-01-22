@@ -8,9 +8,7 @@ class Database {
   query (sql) {
     return new Promise((resolve, reject) => {
       this.connection.query(sql, (err, rows) => {
-        console.log('Query: ', sql)
         if (err) {
-          // console.log('Query: ', sql)
           console.log('Query error: ', err)
           return reject(err)
         }
