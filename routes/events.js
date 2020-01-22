@@ -32,6 +32,14 @@ async function fillBlankEpg (epgArray) {
       throw connectionError
     }
   })
+  this.connection.on('error', (err) => {
+    console.log(err)
+    db.connection.connect(async (connectionError) => {
+      if (connectionError) {
+        throw connectionError
+      }
+    })
+  })
   for (var epg of epgArray.epg) {
     var chnl = epg.channels
     var i = 0
@@ -106,6 +114,14 @@ router.get('/tv/parse', async (req, res) => {
       throw connectionError
     }
   })
+  this.connection.on('error', (err) => {
+    console.log(err)
+    db.connection.connect(async (connectionError) => {
+      if (connectionError) {
+        throw connectionError
+      }
+    })
+  })
   database.main(eventsXml)
   return res.json({ message: 'Parsing started' })
 })
@@ -161,6 +177,14 @@ router.post('/tv/event', async (req, res) => {
             if (connectionError) {
               throw connectionError
             }
+          })
+          this.connection.on('error', (err) => {
+            console.log(err)
+            db.connection.connect(async (connectionError) => {
+              if (connectionError) {
+                throw connectionError
+              }
+            })
           })
           for (var j = 0; j < tstarts.length; j++) {
             for (var channel of epgChannels) {
