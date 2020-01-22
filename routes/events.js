@@ -32,7 +32,7 @@ async function fillBlankEpg (epgArray) {
       throw connectionError
     }
   })
-  this.connection.on('error', (err) => {
+  db.connection.on('error', (err) => {
     console.log(err)
     db.connection.connect(async (connectionError) => {
       if (connectionError) {
@@ -114,7 +114,7 @@ router.get('/tv/parse', async (req, res) => {
       throw connectionError
     }
   })
-  this.connection.on('error', (err) => {
+  db.connection.on('error', (err) => {
     console.log(err)
     db.connection.connect(async (connectionError) => {
       if (connectionError) {
@@ -178,7 +178,7 @@ router.post('/tv/event', async (req, res) => {
               throw connectionError
             }
           })
-          this.connection.on('error', (err) => {
+          db.connection.on('error', (err) => {
             console.log(err)
             db.connection.connect(async (connectionError) => {
               if (connectionError) {

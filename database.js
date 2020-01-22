@@ -13,12 +13,20 @@ var { dbHost, dbUser, dbPassword, dbName, imageFolder } = require('./config.js')
 // var jsonChannels = parsingxml.jsonChannels
 /* This method is used string manipulation, it is needed for entering data into the database without any errors */
 
-// var db = new Database({
-//   host: dbHost,
-//   user: dbUser,
-//   password: dbPassword,
-//   database: dbName
-// })
+var db = new Database({
+  host: dbHost,
+  user: dbUser,
+  password: dbPassword,
+  database: dbName
+})
+db.connection.on('error', (err) => {
+  console.log(err)
+  db.connection.connect(async (connectionError) => {
+    if (connectionError) {
+      throw connectionError
+    }
+  })
+})
 
 // var myCache = new NodeCache({ stdTTL: 60 * 60 * 24 })
 var mapCategory = new HashMap() // cat
