@@ -20,7 +20,18 @@ redisClient.on('error', function () {
 })
 
 async function fillBlankEpg (epgArray) {
-  var db = require('../database.js').db
+  var database = require('../database.js')
+  var db = new Database({
+    host: dbHost,
+    user: dbUser,
+    password: dbPassword,
+    database: dbName
+  })
+  db.connection.connect(async (connectionError) => {
+    if (connectionError) {
+      throw connectionError
+    }
+  })
   for (var epg of epgArray.epg) {
     var chnl = epg.channels
     var i = 0
@@ -84,25 +95,25 @@ router.get('/tv/parse', async (req, res) => {
   var eventsXml = req.param('file')
   eventsXml = './epg_xml/' + eventsXml
   var database = require('../database.js')
-  // var db = new Database({
-  //   host: dbHost,
-  //   user: dbUser,
-  //   password: dbPassword,
-  //   database: dbName
-  // })
-  // db.connection.connect(async (connectionError) => {
-  //   if (connectionError) {
-  //     throw connectionError
-  //   }
-  // })
+  var db = new Database({
+    host: dbHost,
+    user: dbUser,
+    password: dbPassword,
+    database: dbName
+  })
+  db.connection.connect(async (connectionError) => {
+    if (connectionError) {
+      throw connectionError
+    }
+  })
   database.main(eventsXml)
   return res.json({ message: 'Parsing started' })
 })
 
 router.post('/tv/event', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  var databasepullonly = require('../databasepullonly.js')
-  var db = databasepullonly.db
+  // var databasepullonly = require('../databasepullonly.js')
+  // var db = databasepullonly.db
 
   if (typeof req.body.time !== 'undefined' || typeof req.body.epgID !== 'undefined') {
     // time is given in the 'startTime,endtime' format so we need to divide it
@@ -139,6 +150,18 @@ router.post('/tv/event', async (req, res) => {
           console.log(err)
         } else if (reply === null) {
           console.log('Not in cache')
+          var databasepullonly = require('../databasepullonly.js')
+          var db = new Database({
+            host: dbHost,
+            user: dbUser,
+            password: dbPassword,
+            database: dbName
+          })
+          db.connection.connect(async (connectionError) => {
+            if (connectionError) {
+              throw connectionError
+            }
+          })
           for (var j = 0; j < tstarts.length; j++) {
             for (var channel of epgChannels) {
               const sql = `SELECT channel_display, event_name AS tit, subtitle AS subtit, lang AS lng, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, image AS URL, description AS descr, episode_number AS episodeNumber FROM channel_event WHERE channel_display = ${mysql.escape(channel)} AND timestamp_end BETWEEN ${tstarts[j]} AND ${tends[j]} AND timestamp_start BETWEEN ${tstarts[j]} AND ${tends[j]}`

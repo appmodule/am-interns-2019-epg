@@ -452,7 +452,7 @@ async function main(eventsXml) {
   try {
     // await rp.post(parseEvents)
     // await downloadPictures()
-    await execShellCommand()
+    // await execShellCommand()
     // await downloadComplete()
     await clearMaps()
   } catch (e) {
