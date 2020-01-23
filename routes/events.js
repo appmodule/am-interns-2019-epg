@@ -226,7 +226,8 @@ router.post('/tv/event', async (req, res) => {
             var l = 0
             for (var ch of channelArr) {
               if (ch === undefined || ch === null || ch === '') {
-                continue
+                // continue
+                channelData.push({ epgID: epgChannels[l], events: [] })
               } else {
                 var ch1 = ch.slice(0, -1)
 
@@ -267,7 +268,8 @@ router.post('/tv/event', async (req, res) => {
             l = 0
             for (ch of channelArr) {
               if (ch === undefined || ch === null || ch === '') {
-                continue
+                // continue
+                channelDataCache.push({ epgID: epgChannels[l], events: [] })
               } else {
                 ch1 = ch.slice(0, -1)
 
