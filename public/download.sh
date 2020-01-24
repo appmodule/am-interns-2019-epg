@@ -19,6 +19,8 @@ sed -i -r "s/(USE )(.*)(;)/\1${DB_DATABASE}\3/" export.sql
 EXPORT="../export/export.csv"
 rm $EXPORT
 mysql -h db -u root -p${DB_PASSWORD} < export.sql
+# Some images staring with //, to prevent unknown protocol:
+sed -i -r "s|^//|http://|" $EXPORT
 
 MAX_CONCURRENT=20
 n=0
