@@ -7,6 +7,7 @@ source ../.env
 
 START_DATE=`date +%Y-%m-%d -d "yesterday"`
 sed -i -r "s/(start > \")(.*)(\")/\1${START_DATE}\3/" export.sql
+sed -i -r "s/(USE )(.*)(;)/\1${DB_DATABASE}\3/" export.sql
 
 ## Executing from Docker HOST
 # docker exec am-interns-2019-epg_db_1 bash -c "rm /var/lib/mysql/export.csv"
