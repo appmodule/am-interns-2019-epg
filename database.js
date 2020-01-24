@@ -38,22 +38,22 @@ var arrayPictures = []
 
 async function insertChannels(jsonObj) {
   var jsonChannels = parsingxml.getChannels(jsonObj)
-  var sql = 'SELECT display_name FROM channel'
+  var sql = 'SELECT channel_id FROM channel'
   var rows = await db.query(sql)
   for (var element of rows) {
-    mapChannel.set(element.display_name, element.display_name)
+    mapChannel.set(element.channel_id, element.channel_id)
   }
   for (element of jsonChannels) {
-    if (element.icon === undefined && !mapChannel.has(element['display-name'].text)) {
-      sql = 'INSERT INTO channel(display_name, lang) VALUE (' + mysql.escape(element['display-name'].text) + ',' + mysql.escape(element['display-name']['@lang']) + ');'
+    if (element.icon === undefined && !mapChannel.has(element['@id'].toString())) {
+      sql = 'INSERT INTO channel(display_name, lang, channel_id) VALUE (' + mysql.escape(element['display-name'].text) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element['@id']) +');'
       await db.query(sql)
-      try { mapChannel.set(element['display-name'].text, element['display-name'].text) } catch (e) {
+      try { mapChannel.set(element['@id'].toString(), element['@id']) } catch (e) {
         console.log(e)
       }
-    } else if (element.icon !== undefined && !mapChannel.has(element['display-name'].text)) {
-      sql = 'INSERT INTO channel(display_name, lang, icon) VALUE (' + mysql.escape(element['display-name'].text) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ');'
+    } else if (element.icon !== undefined && !mapChannel.has(element['@id'].toString())) {
+      sql = 'INSERT INTO channel(display_name, lang, icon, channel_id) VALUE (' + mysql.escape(element['display-name'].text) + ',' + mysql.escape(element['display-name']['@lang']) + ',' + mysql.escape(element.icon['@src']) + ',' + mysql.escape(element['@id'])  +');'
       await db.query(sql)
-      try { mapChannel.set(element['display-name'].text, element['display-name'].text) } catch (e) {
+      try { mapChannel.set(element['@id'].toString(), element['@id']) } catch (e) {
         console.log(e)
       }
     }
@@ -119,10 +119,12 @@ async function deleteEvents(eventsXml) {
   var fileName = splitFileName[2]
   var splitFileDate = fileName.split('_')
   var fileDateXml = splitFileDate[2]
-  var fileDate = fileDateXml.split('.')[0]
-  fileDate += ' 00:00:00'
-  var dt = Date.parse(fileDate)
-  var sql = 'DELETE FROM channel_event WHERE timestamp_start >= ' + dt + ';'
+  // var fileDate = fileDateXml.split('.')[0]
+  // fileDateXml += ' ' + splitFileDate[3].split('.')[0]
+  // fileDate += ' 00:00:00'
+  // var dt = Date.parse(fileDate)
+  // var sql = 'DELETE FROM channel_event WHERE timestamp_start >= ' + dt + ';'
+  var sql = 'DELETE FROM channel_event WHERE start >= \'' + fileDateXml + '\';'
   await db.query(sql)
 }
 
@@ -130,6 +132,7 @@ async function downloadComplete() {
   console.log('Finished downloading images.')
 }
 
+var skipCounter=0
 async function insertEvents(jsonProgramms) {
   var date
   var episodeNumber
@@ -252,15 +255,19 @@ async function insertEvents(jsonProgramms) {
       // var programTitle
       let eventNameHash
       var lang
-      if (program.title === undefined) {
+      if (program.title.text === undefined || program.title.text === null || program.title.text==='') {
         // programTitle = null
         eventName = ''
         eventNameHash = ''
         lang = ''
       } else {
-        // programTitle = program.title.text.toString()
-        eventName = program.title.text.replace('(lang=de)', '')
-        eventNameHash = program.title.text
+        programTitle = program.title.text.toString()
+        // if (p === 4286 || p === 4287 || p === 4317)
+        // {
+        //   eventName = program.title.text.replace('(lang=de)', '')
+        // }
+        eventName = programTitle.replace('(lang=de)', '')
+        eventNameHash = programTitle
         if (program.title['@lang'] === undefined) {
           lang = ''
         } else {
@@ -288,7 +295,8 @@ async function insertEvents(jsonProgramms) {
       }
 
       if (mapEvent.has(eventNameHash + tSum + program['@channel'])) {
-        return // continue
+        skipCounter++
+        continue // continue
       }
 
       var img = null
@@ -308,7 +316,7 @@ async function insertEvents(jsonProgramms) {
       //   console.log('icon is null')
       // }
 
-      var channelName = program['@channel']
+      var channelName = program['@channel'].toString()
       // var sql = 'SELECT display_name FROM channel WHERE display_name = ' + mysql.escape(channelName) + ';'
       // var res = await db.query(sql)
       // var chName = res[0].display_name
@@ -317,6 +325,7 @@ async function insertEvents(jsonProgramms) {
       // var resCount = await db.query(sql)
 
       // if (resCount[0].countChannels > 0) {
+      
       if (mapChannel.has(channelName)) {
         var sql = 'INSERT INTO channel_event(start, end, timezone, timestamp_start, timestamp_end, channel_display, event_name, lang, description, rating, star_rating, icon, episode_number, subtitle, date, country, presenter, actor, director, image)' +
 
@@ -331,6 +340,9 @@ async function insertEvents(jsonProgramms) {
         await db.query(sql)
 
         await mapEvent.set(eventNameHash + tSum + program['@channel'], eventName + tSum + program['@channel'])
+      } else {
+        skipCounter++
+        console.log('Channel not exists ', channelName)
       }
     } catch (e) {
       console.log(e)
@@ -455,7 +467,7 @@ async function main(eventsXml) {
   //   console.log(e)
   // }
   // db.close()
-
+  console.log('Skipped elements ', skipCounter)
   console.log('Parsing finished')
   try {
     // await rp.post(parseEvents)
