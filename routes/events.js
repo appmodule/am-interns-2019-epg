@@ -136,7 +136,13 @@ router.all('/tv/event', async (req, res) => {
   } else if (req.method === 'GET') {
     request = req.query
   } else {
-    res.status(500).json('Unsupported method: ', req.method)
+    // res.status(500).json('Unsupported method: ', req.method)
+    let error = {
+      code: 1,
+      desc: 'Unsupported method: ' + req.method
+    }
+    var data = { epg: [], error }
+    return res.send(data)
   }
 
   if (typeof request.time !== 'undefined' || typeof request.epgID !== 'undefined') {
@@ -203,8 +209,7 @@ router.all('/tv/event', async (req, res) => {
                 var imgURL
                 if (url !== null) {
                   imgURL = imgPrefix + url.substr(1)
-                }
-                else {
+                } else {
                   imgURL = ''
                 }
                 events += `${r.tit}~${r.subtit}~${r.lng}~${r.str}~${r.timeStr}~${r.timeEnd}~${r.fin}~${r.id}~${imgURL}~${r.descr}~${r.episodeNumber}{`
@@ -254,7 +259,11 @@ router.all('/tv/event', async (req, res) => {
             dataSend.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelData })
             a++
           }
-          var data = { epg: dataSend, error: err }
+          let error = {
+            code: err ? 1 : 0,
+            desc: err ? JSON.stringify(err) : ''
+          }
+          var data = { epg: dataSend, error }
           await fillBlankEpg(data)
           return res.send(data)
         } else {
@@ -297,8 +306,11 @@ router.all('/tv/event', async (req, res) => {
             dataSendCache.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelDataCache })
             a++
           }
-
-          var dataCache = { epg: dataSendCache, error: err }
+          let error = {
+            code: err ? 1 : 0,
+            desc: err ? JSON.stringify(err) : ''
+          }
+          var dataCache = { epg: dataSendCache, error }
           await fillBlankEpg(dataCache)
           return res.send(dataCache)
           // redisClient.flushdb() // flush keys
@@ -307,7 +319,13 @@ router.all('/tv/event', async (req, res) => {
       })
     }
   } else {
-    res.status(400).json('Not provided all required params')
+    // res.status(400).json('Not provided all required params')
+    let error = {
+      code: 1,
+      desc: 'Not provided all required params'
+    }
+    data = { epg: [], error }
+    return res.send(data)
   }
 })
 
