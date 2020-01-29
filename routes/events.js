@@ -130,10 +130,18 @@ router.all('/tv/event', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   // var databasepullonly = require('../databasepullonly.js')
   // var db = databasepullonly.db
+  let request
+  if (req.method === 'POST') {
+    request = req.body
+  } else if (req.method === 'GET') {
+    request = req.query
+  } else {
+    res.status(500).json('Unsupported method: ', req.method)
+  }
 
-  if (typeof req.body.time !== 'undefined' || typeof req.body.epgID !== 'undefined') {
+  if (typeof request.time !== 'undefined' || typeof request.epgID !== 'undefined') {
     // time is given in the 'startTime,endtime' format so we need to divide it
-    var time = req.body.time
+    var time = request.time
     if (time[time.length - 1] === ';') {
       time = time.substring(0, time.length - 1)
     }
@@ -148,7 +156,7 @@ router.all('/tv/event', async (req, res) => {
     }
 
     // we also get a number of channels whose events we need to extract and they are in the format Channel1;Channel2;Channel3...
-    let epgChannels = req.body.epgID
+    let epgChannels = request.epgID
     if (epgChannels[epgChannels.length - 1] !== ';') {
       epgChannels += ';'
     }
@@ -166,7 +174,7 @@ router.all('/tv/event', async (req, res) => {
           console.log(err)
         } else if (reply === null) {
           console.log('Not in cache')
-          var databasepullonly = require('../databasepullonly.js')
+          // var databasepullonly = require('../databasepullonly.js')
           var db = new Database({
             host: dbHost,
             user: dbUser,
@@ -298,6 +306,8 @@ router.all('/tv/event', async (req, res) => {
         }
       })
     }
+  } else {
+    res.status(400).json('Not provided all required params')
   }
 })
 
