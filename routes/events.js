@@ -126,7 +126,7 @@ router.get('/tv/parse', async (req, res) => {
   return res.json({ message: 'Parsing started' })
 })
 
-router.post('/tv/event', async (req, res) => {
+router.all('/tv/event', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   // var databasepullonly = require('../databasepullonly.js')
   // var db = databasepullonly.db
