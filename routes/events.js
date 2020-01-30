@@ -310,8 +310,8 @@ router.all('/tv/event', async (req, res) => {
             code: err ? 1 : 0,
             desc: err ? JSON.stringify(err) : ''
           }
-          // var dataCache = { epg: dataSendCache, error }
-          var dataCache = { epg: dataSendCache }
+          var dataCache = { epg: dataSendCache, error }
+          // var dataCache = { epg: dataSendCache }
           await fillBlankEpg(dataCache)
           return res.send(dataCache)
           // redisClient.flushdb() // flush keys
