@@ -202,7 +202,7 @@ router.all('/tv/event', async (req, res) => {
           })
           for (var j = 0; j < tstarts.length; j++) {
             for (var channel of epgChannels) {
-              const sql = `SELECT channel_display, event_name AS tit, subtitle AS subtit, lang AS lng, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, image AS URL, description AS descr, episode_number AS episodeNumber FROM channel_event WHERE channel_display = ${mysql.escape(channel)} AND timestamp_end BETWEEN ${tstarts[j]} AND ${tends[j]} AND timestamp_start BETWEEN ${tstarts[j]} AND ${tends[j]}`
+              const sql = `SELECT channel_display, event_name AS tit, subtitle AS subtit, (timestamp_end - timestamp_start) AS lng, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, image AS URL, description AS descr, episode_number AS episodeNumber FROM channel_event WHERE channel_display = ${mysql.escape(channel)} AND timestamp_end BETWEEN ${tstarts[j]} AND ${tends[j]} AND timestamp_start BETWEEN ${tstarts[j]} AND ${tends[j]}`
               var rows = await db.query(sql)
               for (var r of rows) {
                 var url = r.URL
