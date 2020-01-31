@@ -205,6 +205,7 @@ router.all('/tv/event', async (req, res) => {
               const sql = `SELECT channel_display, event_name AS tit, subtitle AS subtit, (timestamp_end - timestamp_start) AS lng, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, image AS URL, description AS descr, episode_number AS episodeNumber FROM channel_event WHERE channel_display = ${mysql.escape(channel)} AND timestamp_end BETWEEN ${tstarts[j]} AND ${tends[j]} AND timestamp_start BETWEEN ${tstarts[j]} AND ${tends[j]}`
               var rows = await db.query(sql)
               for (var r of rows) {
+                r.lng = parseInt(r.lng)
                 var url = r.URL
                 var imgURL
                 if (url !== null) {
