@@ -205,7 +205,6 @@ router.all('/tv/event', async (req, res) => {
               const sql = `SELECT channel_display, event_name AS tit, subtitle AS subtit, (timestamp_end - timestamp_start) AS lng, timestamp_start AS str, start AS timeStr, end AS timeEnd, timestamp_end AS fin, id, image AS URL, description AS descr, episode_number AS episodeNumber FROM channel_event WHERE channel_display = ${mysql.escape(channel)} AND timestamp_end BETWEEN ${tstarts[j]} AND ${tends[j]} AND timestamp_start BETWEEN ${tstarts[j]} AND ${tends[j]}`
               var rows = await db.query(sql)
               for (var r of rows) {
-                r.lng = parseInt(r.lng)
                 var url = r.URL
                 var imgURL
                 if (url !== null) {
@@ -251,7 +250,7 @@ router.all('/tv/event', async (req, res) => {
                 for (var ev of eventArr) {
                   var eventAttributes = ev.split('~')
 
-                  eventData.push({ tit: eventAttributes[0], subtit: eventAttributes[1], lng: eventAttributes[2], str: parseInt(eventAttributes[3]), timeStr: eventAttributes[4], timeEnd: eventAttributes[5], fin: parseInt(eventAttributes[6]), id: eventAttributes[7], URL: eventAttributes[8], desc: eventAttributes[9], episodeNumber: parseInt(eventAttributes[10]) })
+                  eventData.push({ tit: eventAttributes[0], subtit: eventAttributes[1], lng: parseInt(eventAttributes[2]), str: parseInt(eventAttributes[3]), timeStr: eventAttributes[4], timeEnd: eventAttributes[5], fin: parseInt(eventAttributes[6]), id: eventAttributes[7], URL: eventAttributes[8], desc: eventAttributes[9], episodeNumber: parseInt(eventAttributes[10]) })
                 }
                 channelData.push({ epgID: epgChannels[l], events: eventData })
               }
@@ -297,7 +296,7 @@ router.all('/tv/event', async (req, res) => {
                 for (ev of eventArr) {
                   eventAttributes = ev.split('~')
 
-                  eventDataCache.push({ tit: eventAttributes[0], subtit: eventAttributes[1], lng: eventAttributes[2], str: parseInt(eventAttributes[3]), timeStr: eventAttributes[4], timeEnd: eventAttributes[5], fin: parseInt(eventAttributes[6]), id: eventAttributes[7], URL: eventAttributes[8], desc: eventAttributes[9], episodeNumber: parseInt(eventAttributes[10]) })
+                  eventDataCache.push({ tit: eventAttributes[0], subtit: eventAttributes[1], lng: parseInt(eventAttributes[2]), str: parseInt(eventAttributes[3]), timeStr: eventAttributes[4], timeEnd: eventAttributes[5], fin: parseInt(eventAttributes[6]), id: eventAttributes[7], URL: eventAttributes[8], desc: eventAttributes[9], episodeNumber: parseInt(eventAttributes[10]) })
                 }
                 channelDataCache.push({ epgID: epgChannels[l], events: eventDataCache })
               }
