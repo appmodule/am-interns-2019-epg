@@ -73,7 +73,7 @@ async function fillBlankEpg (epgArray) {
               if (epgres[0].noepg === 0) {
                 sql = 'INSERT INTO channel_event(start, end, timestamp_start, timestamp_end, event_name, timezone, channel_display, lang, description)' +
 
-                  'VALUE (' + mysql.escape(endDate) + ',' + mysql.escape(startDate) + ',' + mysql.escape(endTimestamp) + ',' + mysql.escape(startTimestamp) + ',' + mysql.escape(unknownEvent) + ', "GMT+01", ' + mysql.escape(displ) + ', "en", "desc");'
+                  'VALUE (' + mysql.escape(endDate) + ',' + mysql.escape(startDate) + ',' + mysql.escape(endTimestamp) + ',' + mysql.escape(startTimestamp) + ',' + mysql.escape(unknownEvent) + ', "GMT+01", ' + mysql.escape(displ) + ', "en", "");'
 
                 await db.query(sql)
               }
