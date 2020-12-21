@@ -8,5 +8,7 @@ module.exports = {
   dbPassword: process.env.DB_PASSWORD,
   dbName: process.env.DB_DATABASE,
   imageFolder: process.env.IMAGE_FOLDER,
-  imgPrefix: process.env.IMG_PREFIX
+  imgPrefix: process.env.IMG_PREFIX,
+  dbDataKeptDays: process.env.DB_DATA_KEPT_DAYS,
+  redisHost: process.env.REDIS_HOST
 }

@@ -8,9 +8,9 @@ var redis = require('redis')
 var dotenv = require('dotenv')
 dotenv.config()
 // var { imgPrefix } = require('../config.js')
-var { dbHost, dbUser, dbPassword, dbName, imageFolder, imgPrefix } = require('../config.js')
+var { dbHost, dbUser, dbPassword, dbName, imageFolder, imgPrefix, redisHost } = require('../config.js')
 
-var redisClient = redis.createClient({ host: 'Redis', port: 6379 })
+var redisClient = redis.createClient({ host: redisHost, port: 6379 }) // Redis u docker, lokalno localhost
 redisClient.on('ready', function () {
   console.log('Redis is ready')
 })
@@ -67,7 +67,7 @@ async function fillBlankEpg (epgArray) {
             var unknownEvent = 'No EPG'
             if (startTimestamp !== endTimestamp) {
               // console.log('No EPG: ' + chnl[i].epgID + ', Id of event: ' + event[j].id)
-              var sql = 'SELECT COUNT(*) as noepg FROM channel_event WHERE start = ' + mysql.escape(endDate) + ' AND end = ' + mysql.escape(startDate) + ' AND event_name = ' + mysql.escape(unknownEvent) + ' AND channel_display = ' + mysql.escape(displ) + ';'
+              var sql = 'SELECT COUNT(*) as noepg FROM channel_event WHERE timestamp_start = ' + mysql.escape(endTimestamp) + ' AND timestamp_end = ' + mysql.escape(startTimestamp) + ' AND event_name = ' + mysql.escape(unknownEvent) + ' AND channel_display = ' + mysql.escape(displ) + ';'
               var epgres = await db.query(sql)
 
               if (epgres[0].noepg === 0) {

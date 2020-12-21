@@ -1,10 +1,10 @@
-USE bds;
+USE epg;
 
 SELECT
    distinct(icon)
 FROM
     channel_event
 WHERE 
-    start > "2020-01-23"
+    start > "2020-12-20"
 INTO OUTFILE '/var/lib/mysql/export.csv'
 LINES TERMINATED BY '\r\n';
