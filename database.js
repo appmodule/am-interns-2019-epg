@@ -7,7 +7,7 @@ var dotenv = require('dotenv')
 const fs = require('fs')
 const cp = require('child_process')
 dotenv.config()
-var { dbHost, dbUser, dbPassword, dbName, imageFolder } = require('./config.js') // image_folder removed
+var { dbHost, dbUser, dbPassword, dbName, imageFolder, dbDataKeptDays } = require('./config.js') // image_folder removed
 
 // var jsonProgramms = parsingxml.jsonProgramms
 // var jsonChannels = parsingxml.jsonChannels
@@ -118,13 +118,17 @@ async function deleteEvents(eventsXml) {
   var splitFileName = filePath.split('/')
   var fileName = splitFileName[2]
   var splitFileDate = fileName.split('_')
-  var fileDateXml = splitFileDate[2]
+  // var fileDateXml = splitFileDate[2]
   // var fileDate = fileDateXml.split('.')[0]
   // fileDateXml += ' ' + splitFileDate[3].split('.')[0]
   // fileDate += ' 00:00:00'
   // var dt = Date.parse(fileDate)
   // var sql = 'DELETE FROM channel_event WHERE timestamp_start >= ' + dt + ';'
-  var sql = 'DELETE FROM channel_event WHERE start >= \'' + fileDateXml + '\';'
+  var sec = splitFileDate[5].split('.')[0]
+  var dateString = `${splitFileDate[2]}T${splitFileDate[3]}:${splitFileDate[4]}:${sec}`
+  var dateMillis = Date.parse(dateString)
+  var deleteFromDate = dateMillis - dbDataKeptDays * 24 * 60 * 60 * 1000
+  var sql = `DELETE FROM channel_event WHERE timestamp_start >= ${dateMillis} OR timestamp_start < ${deleteFromDate} ;`
   await db.query(sql)
 }
 

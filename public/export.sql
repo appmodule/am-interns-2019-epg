@@ -1,4 +1,4 @@
-USE bds;
+USE epg;
 
 SELECT
    distinct(icon)
