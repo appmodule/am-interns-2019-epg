@@ -1,5 +1,3 @@
--- Adminer 4.7.3 MySQL dump
-
 SET NAMES utf8;
 SET time_zone = '+00:00';
 SET foreign_key_checks = 0;
@@ -20,9 +18,9 @@ CREATE TABLE `channel` (
   `display_name` varchar(25) COLLATE utf8_bin NOT NULL,
   `lang` varchar(2) COLLATE utf8_bin DEFAULT NULL,
   `icon` varchar(255) COLLATE utf8_bin DEFAULT 'null',
-  `channel_id` varchar(25) COLLATE utf8_bin NOT NULL,
+  `channel_id` varchar(10) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `channel_id` (`channel_id`)
+  UNIQUE KEY `display_name` (`display_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
@@ -34,25 +32,25 @@ CREATE TABLE `channel_event` (
   `timestamp_start` bigint(14) NOT NULL,
   `end` datetime NOT NULL,
   `timestamp_end` bigint(14) NOT NULL,
-  `timezone` varchar(6) COLLATE utf8_bin NOT NULL,
+  `timezone` varchar(6) COLLATE utf8_bin DEFAULT NULL,
   `channel_display` varchar(25) COLLATE utf8_bin DEFAULT NULL,
-  `lang` varchar(2) COLLATE utf8_bin NOT NULL,
+  `lang` varchar(2) COLLATE utf8_bin DEFAULT NULL,
   `description` text COLLATE utf8_bin,
   `rating` varchar(30) COLLATE utf8_bin DEFAULT 'null',
   `star_rating` varchar(4) COLLATE utf8_bin DEFAULT 'null',
   `icon` varchar(255) COLLATE utf8_bin DEFAULT 'null',
-  `image` varchar(1000) COLLATE utf8_bin DEFAULT 'null',
+  `image` blob,
   `episode_number` varchar(80) COLLATE utf8_bin DEFAULT 'null',
   `subtitle` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `date` varchar(4) COLLATE utf8_bin DEFAULT 'null',
-  `country` varchar(50) COLLATE utf8_bin DEFAULT 'null',
+  `country` varchar(15) COLLATE utf8_bin DEFAULT 'null',
   `presenter` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `director` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `actor` varchar(1000) COLLATE utf8_bin DEFAULT 'null',
   PRIMARY KEY (`id`),
   KEY `channel_display` (`channel_display`),
   KEY `event_name` (`event_name`),
-  CONSTRAINT `channel_event_ibfk_3` FOREIGN KEY (`channel_display`) REFERENCES `channel` (`channel_id`) ON UPDATE CASCADE
+  CONSTRAINT `channel_event_ibfk_3` FOREIGN KEY (`channel_display`) REFERENCES `channel` (`display_name`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
@@ -67,6 +65,3 @@ CREATE TABLE `event_category` (
   CONSTRAINT `event_category_ibfk_4` FOREIGN KEY (`category_name`) REFERENCES `category` (`category_type`),
   CONSTRAINT `event_category_ibfk_5` FOREIGN KEY (`channel_event_name`) REFERENCES `channel_event` (`event_name`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-
-
--- 2019-10-03 09:04:10
