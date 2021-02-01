@@ -43,7 +43,7 @@ CREATE TABLE `channel_event` (
   `episode_number` varchar(80) COLLATE utf8_bin DEFAULT 'null',
   `subtitle` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `date` varchar(4) COLLATE utf8_bin DEFAULT 'null',
-  `country` varchar(15) COLLATE utf8_bin DEFAULT 'null',
+  `country` varchar(25) COLLATE utf8_bin DEFAULT 'null',
   `presenter` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `director` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `actor` varchar(1000) COLLATE utf8_bin DEFAULT 'null',
