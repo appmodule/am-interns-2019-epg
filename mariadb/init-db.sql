@@ -18,7 +18,7 @@ CREATE TABLE `channel` (
   `display_name` varchar(25) COLLATE utf8_bin NOT NULL,
   `lang` varchar(2) COLLATE utf8_bin DEFAULT NULL,
   `icon` varchar(255) COLLATE utf8_bin DEFAULT 'null',
-  `channel_id` varchar(10) COLLATE utf8_bin DEFAULT NULL,
+  `channel_id` varchar(25) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `display_name` (`display_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
