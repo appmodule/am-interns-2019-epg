@@ -196,9 +196,12 @@ async function insertEvents(jsonProgramms) {
 
       if (program['sub-title'] === undefined) {
         subtitle = null
-      } else {
-        subtitle = program['sub-title'].text
-      }
+      } else if (Object.is(program['sub-title'].text, NaN)) {
+          subtitle = null
+        } else {
+          subtitle = program['sub-title'].text
+        }
+        
 
       if (program['star-rating'] === undefined) {
         starRating = null
