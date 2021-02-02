@@ -207,7 +207,7 @@ router.all('/tv/event', async (req, res) => {
               for (var r of rows) {
                 var url = r.URL
                 var imgURL
-                if (url !== null) {
+                if (url) {
                   imgURL = imgPrefix + url.substr(1)
                 } else {
                   imgURL = ''

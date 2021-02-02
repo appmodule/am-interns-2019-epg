@@ -18,9 +18,10 @@ CREATE TABLE `channel` (
   `display_name` varchar(25) COLLATE utf8_bin NOT NULL,
   `lang` varchar(2) COLLATE utf8_bin DEFAULT NULL,
   `icon` varchar(255) COLLATE utf8_bin DEFAULT 'null',
-  `channel_id` varchar(25) COLLATE utf8_bin DEFAULT NULL,
+  `channel_id` varchar(25) COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `display_name` (`display_name`)
+  UNIQUE KEY `display_name` (`display_name`),
+  UNIQUE KEY `channel_id` (`channel_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
@@ -39,18 +40,18 @@ CREATE TABLE `channel_event` (
   `rating` varchar(30) COLLATE utf8_bin DEFAULT 'null',
   `star_rating` varchar(4) COLLATE utf8_bin DEFAULT 'null',
   `icon` varchar(255) COLLATE utf8_bin DEFAULT 'null',
-  `image` blob,
+  `image` varchar(1000) COLLATE utf8_bin DEFAULT 'null',
   `episode_number` varchar(80) COLLATE utf8_bin DEFAULT 'null',
   `subtitle` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `date` varchar(4) COLLATE utf8_bin DEFAULT 'null',
-  `country` varchar(25) COLLATE utf8_bin DEFAULT 'null',
+  `country` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `presenter` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `director` varchar(255) COLLATE utf8_bin DEFAULT 'null',
   `actor` varchar(1000) COLLATE utf8_bin DEFAULT 'null',
   PRIMARY KEY (`id`),
   KEY `channel_display` (`channel_display`),
   KEY `event_name` (`event_name`),
-  CONSTRAINT `channel_event_ibfk_3` FOREIGN KEY (`channel_display`) REFERENCES `channel` (`display_name`) ON UPDATE CASCADE
+  CONSTRAINT `channel_event_ibfk_3` FOREIGN KEY (`channel_display`) REFERENCES `channel` (`channel_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 

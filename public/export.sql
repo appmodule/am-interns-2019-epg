@@ -5,6 +5,6 @@ SELECT
 FROM
     channel_event
 WHERE 
-    start > "2020-12-20"
+    start > "2021-02-01"
 INTO OUTFILE '/var/lib/mysql/export.csv'
 LINES TERMINATED BY '\r\n';
