@@ -4,7 +4,8 @@ var myCache
 var mysql = require('mysql')
 // var db
 var Database = require('../databaseclass.js')
-var redis = require('redis')
+// var redis = require('redis')
+const redis = require('async-redis')
 var dotenv = require('dotenv')
 dotenv.config()
 // var { imgPrefix } = require('../config.js')
@@ -175,11 +176,9 @@ router.all('/tv/event', async (req, res) => {
       var key = epgChannels + time
       let events = ''
 
-      redisClient.get(key, async function (err, reply) {
-        if (err) {
-          console.log(err)
-        } else if (reply === null) {
-          console.log('Not in cache')
+      var reply = await redisClient.get(key)
+      if (reply === null) {
+        console.log('Not in cache')
           // var databasepullonly = require('../databasepullonly.js')
           var db = new Database({
             host: dbHost,
@@ -219,9 +218,9 @@ router.all('/tv/event', async (req, res) => {
             events += '}'
           }
           db.close()
-          redisClient.set(key, events)
-          var ttl = 60 * 60 * 6 // 6 hours
-          redisClient.expire(key, ttl) // key expires in 6 hours
+          await redisClient.set(key, events)
+          // var ttl = 60 * 60 * 6 // 6 hours
+          // await redisClient.expire(key, ttl) // key expires in 6 hours
           console.log('In cache now')
 
           reply = events.slice(0, -1)
@@ -259,15 +258,16 @@ router.all('/tv/event', async (req, res) => {
             dataSend.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelData })
             a++
           }
-          let error = {
-            code: err ? 1 : 0,
-            desc: err ? JSON.stringify(err) : 'Success'
-          }
-          var data = { epg: dataSend, error }
+          // let error = {
+          //   code: err ? 1 : 0,
+          //   desc: err ? JSON.stringify(err) : 'Success'
+          // }
+          // var data = { epg: dataSend, error }
+          var data = { epg: dataSend }
           await fillBlankEpg(data)
           return res.send(data)
-        } else {
-          console.log('In cache')
+      } else {
+        console.log('In cache')
 
           reply = reply.slice(0, -1)
           // var timestampArr = []
@@ -306,18 +306,15 @@ router.all('/tv/event', async (req, res) => {
             dataSendCache.push({ start: parseInt(tstarts[a]), end: parseInt(tends[a]), channels: channelDataCache })
             a++
           }
-          let error = {
-            code: err ? 1 : 0,
-            desc: err ? JSON.stringify(err) : 'Success'
-          }
-          var dataCache = { epg: dataSendCache, error }
-          // var dataCache = { epg: dataSendCache }
+          // let error = {
+          //   code: err ? 1 : 0,
+          //   desc: err ? JSON.stringify(err) : 'Success'
+          // }
+          // var dataCache = { epg: dataSendCache, error }
+          var dataCache = { epg: dataSendCache }
           await fillBlankEpg(dataCache)
           return res.send(dataCache)
-          // redisClient.flushdb() // flush keys
-          // console.log('Cache has been flushed')
-        }
-      })
+      }
     }
   } else {
     // res.status(400).json('Not provided all required params')
@@ -429,4 +426,7 @@ router.get('/tv/event/:id/image', (req, res) => { // not in use
   })
 })
 
-module.exports = router
+module.exports = {
+  router,
+  redisClient
+}

@@ -4,7 +4,7 @@ var path = require('path')
 var logger = require('morgan')
 
 var bodyParser = require('body-parser')
-var events = require('./routes/events')
+var events = require('./routes/events').router
 
 var app = express()
 app.use(bodyParser.json())

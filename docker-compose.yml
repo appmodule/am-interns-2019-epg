@@ -40,7 +40,9 @@ services:
     image: sameersbn/redis:4.0.9-3
     ports:
       - ${REDIS_PORT}:6379
-    restart: always 
+    restart: always
+    volumes:
+      - ./redis-volume:/data
   
   adminer:
     image: adminer
