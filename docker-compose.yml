@@ -13,7 +13,7 @@ services:
     volumes:
       - ./epg_xml:/workspace/epg_xml
       - ./public:/workspace/public # export executing from Docker HOST
-      - mysql:/workspace/export
+      - mysqldb:/workspace/export
 
   # epgparser:
   #   build:
@@ -34,7 +34,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
     volumes:
-      - mysql:/var/lib/mysql
+      - mysqldb:/var/lib/mysql
   
   redis:
     image: sameersbn/redis:4.0.9-3
@@ -53,5 +53,5 @@ services:
       - db
 
 volumes:
-  mysql:
+  mysqldb:
     driver: local 
