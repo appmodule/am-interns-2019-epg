@@ -42,7 +42,7 @@ services:
       - ${REDIS_PORT}:6379
     restart: always
     volumes:
-      - ./redis-volume:/data
+      - redis-vol:/var/lib/redis
   
   adminer:
     image: adminer
@@ -55,3 +55,4 @@ services:
 volumes:
   mysqldb:
     driver: local 
+  redis-vol:
