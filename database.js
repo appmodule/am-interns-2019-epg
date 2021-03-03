@@ -4,6 +4,7 @@ var downloader = require('image-downloader')
 var parsingxml = require('./parsingxml')
 var Database = require('./databaseclass.js')
 var dotenv = require('dotenv')
+const config = require('./config.js')
 const fs = require('fs')
 const cp = require('child_process')
 const asyncRedis = require('async-redis')
@@ -485,6 +486,7 @@ async function main(eventsXml) {
   // db.close()
   console.log('Skipped elements ', skipCounter)
   console.log('Parsing finished')
+  config.isParsing = false
   try {
     await execShellCommand()
     await clearMaps()

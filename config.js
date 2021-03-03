@@ -10,5 +10,6 @@ module.exports = {
   imageFolder: process.env.IMAGE_FOLDER,
   imgPrefix: process.env.IMG_PREFIX,
   dbDataKeptDays: process.env.DB_DATA_KEPT_DAYS,
-  redisHost: process.env.REDIS_HOST
+  redisHost: process.env.REDIS_HOST,
+  isParsing: true
 }

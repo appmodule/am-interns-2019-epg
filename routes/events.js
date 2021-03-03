@@ -2,10 +2,10 @@ var express = require('express')
 var router = express.Router()
 var myCache
 var mysql = require('mysql')
-// var db
 var Database = require('../databaseclass.js')
 // var redis = require('redis')
 const redis = require('async-redis')
+const config = require('../config.js')
 var dotenv = require('dotenv')
 dotenv.config()
 // var { imgPrefix } = require('../config.js')
@@ -101,6 +101,7 @@ var sqlAPI
 // })
 
 router.get('/tv/parse', async (req, res) => {
+  config.isParsing = true
   var eventsXml = req.param('file')
   eventsXml = './epg_xml/' + eventsXml
   var database = require('../database.js')
@@ -141,6 +142,14 @@ router.all('/tv/event', async (req, res) => {
     let error = {
       code: 1,
       desc: 'Unsupported method: ' + req.method
+    }
+    var data = { epg: [], error }
+    return res.send(data)
+  }
+  if (config.isParsing) {
+    let error = {
+      code: 1,
+      desc: 'Parsing in progress'
     }
     var data = { epg: [], error }
     return res.send(data)
