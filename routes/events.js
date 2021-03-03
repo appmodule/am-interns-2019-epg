@@ -272,7 +272,11 @@ router.all('/tv/event', async (req, res) => {
           //   desc: err ? JSON.stringify(err) : 'Success'
           // }
           // var data = { epg: dataSend, error }
-          var data = { epg: dataSend }
+          let error = {
+            code: 0,
+            desc: 'Success'
+          }
+          var data = { epg: dataSend, error }
           await fillBlankEpg(data)
           return res.send(data)
       } else {
@@ -320,7 +324,11 @@ router.all('/tv/event', async (req, res) => {
           //   desc: err ? JSON.stringify(err) : 'Success'
           // }
           // var dataCache = { epg: dataSendCache, error }
-          var dataCache = { epg: dataSendCache }
+          let error = {
+            code: 0,
+            desc: 'Success'
+          }
+          var dataCache = { epg: dataSendCache, error }
           await fillBlankEpg(dataCache)
           return res.send(dataCache)
       }
