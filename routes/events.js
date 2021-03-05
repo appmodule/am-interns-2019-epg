@@ -57,8 +57,8 @@ async function fillBlankEpg (epgArray) {
             // console.log('Test is finished for EPG: ' + chnl[i].epgID)
           } else {
             var displ = epgID
-            var startTimestamp = event[j + 1].str
-            var endTimestamp = event[j].fin
+            var startTimestamp = parseInt(event[j + 1].str)
+            var endTimestamp = parseInt(event[j].fin)
             var startTime = (new Date(startTimestamp)).toISOString()
             var endTime = (new Date(endTimestamp)).toISOString()
             var startDate = startTime.toString().replace('T', ' ')

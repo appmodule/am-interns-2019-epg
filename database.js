@@ -132,7 +132,8 @@ async function deleteEvents(eventsXml) {
   var dateString = `${splitFileDate[2]}T${time}`
   var dateMillis = Date.parse(dateString)
   var deleteFromDate = dateMillis - dbDataKeptDays * 24 * 60 * 60 * 1000
-  var sql = `DELETE FROM channel_event WHERE timestamp_start >= ${dateMillis} OR timestamp_start < ${deleteFromDate} ;`
+  // var sql = `DELETE FROM channel_event WHERE timestamp_start >= ${dateMillis} OR timestamp_start < ${deleteFromDate} ;`
+  var sql = `DELETE FROM channel_event WHERE timestamp_start < ${deleteFromDate} ;`
   await db.query(sql)
 }
 
