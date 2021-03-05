@@ -277,7 +277,7 @@ router.all('/tv/event', async (req, res) => {
             desc: 'Success'
           }
           var data = { epg: dataSend, error }
-          await fillBlankEpg(data)
+          // await fillBlankEpg(data)
           return res.send(data)
       } else {
         console.log('In cache')
@@ -329,7 +329,7 @@ router.all('/tv/event', async (req, res) => {
             desc: 'Success'
           }
           var dataCache = { epg: dataSendCache, error }
-          await fillBlankEpg(dataCache)
+          // await fillBlankEpg(dataCache)
           return res.send(dataCache)
       }
     }
