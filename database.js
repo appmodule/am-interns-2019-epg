@@ -7,7 +7,6 @@ var dotenv = require('dotenv')
 const config = require('./config.js')
 const fs = require('fs')
 const cp = require('child_process')
-const asyncRedis = require('async-redis')
 dotenv.config()
 var { dbHost, dbUser, dbPassword, dbName, imageFolder, dbDataKeptDays } = require('./config.js') // image_folder removed
 
@@ -29,8 +28,6 @@ db.connection.on('error', (err) => {
     }
   })
 })
-
-const redisClient = require('./routes/events.js').redisClient
 
 var mapCategory = new HashMap() // cat
 var mapChannel = new HashMap() // channel
@@ -132,8 +129,7 @@ async function deleteEvents(eventsXml) {
   var dateString = `${splitFileDate[2]}T${time}`
   var dateMillis = Date.parse(dateString)
   var deleteFromDate = dateMillis - dbDataKeptDays * 24 * 60 * 60 * 1000
-  // var sql = `DELETE FROM channel_event WHERE timestamp_start >= ${dateMillis} OR timestamp_start < ${deleteFromDate} ;`
-  var sql = `DELETE FROM channel_event WHERE timestamp_start < ${deleteFromDate} ;`
+  var sql = `DELETE FROM channel_event WHERE timestamp_start >= ${dateMillis} OR timestamp_start < ${deleteFromDate} ;`
   await db.query(sql)
 }
 
@@ -309,8 +305,7 @@ async function insertEvents(jsonProgramms) {
         eventNameHash = eventNameHash.replace('\\u', 'u')
       }
 
-      const eventRedis = await redisClient.get(eventNameHash + tSum + program['@channel'])
-      if (mapEvent.has(eventNameHash + tSum + program['@channel']) || eventRedis != null || startTimestamp >= stopTimestamp) {
+      if (mapEvent.has(eventNameHash + tSum + program['@channel']) || startTimestamp >= stopTimestamp) {
         skipCounter++
         continue // continue
       }
@@ -356,7 +351,6 @@ async function insertEvents(jsonProgramms) {
         await db.query(sql)
 
         await mapEvent.set(eventNameHash + tSum + program['@channel'], eventName + tSum + program['@channel'])
-        await redisClient.set(eventNameHash + tSum + program['@channel'], eventName + tSum + program['@channel'])
       } else {
         skipCounter++
         console.log('Channel not exists ', channelName)
@@ -398,8 +392,7 @@ async function insertEventCategory(jsonProgramms) {
           // sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
           // var sqlRes = await db.query(sql)
           // if (sqlRes[0].countEvents > 0) {
-          const eventRedis = await redisClient.get(eventNameHash + tsSum + element['@channel'])
-          if (mapEvent.has(eventNameHash + tsSum + element['@channel']) || eventRedis != null) {
+          if (mapEvent.has(eventNameHash + tsSum + element['@channel'])) {
             sql = 'INSERT INTO event_category(channel_event_name, category_name) VALUE (' + mysql.escape(eventName) + ', ' + mysql.escape(l) + ');'
             mapEventCategory.set(eventNameHash + tmp, eventNameHash + tmp)
             await db.query(sql)
@@ -412,8 +405,7 @@ async function insertEventCategory(jsonProgramms) {
         // sql = 'SELECT COUNT(*) AS countEvents FROM channel_event WHERE event_name = ' + mysql.escape(eventName) + ';'
         // sqlRes = await db.query(sql)
         // if (sqlRes[0].countEvents > 0) {
-        const eventRedis = await redisClient.get(eventNameHash + tsSum + element['@channel'])
-        if (mapEvent.has(eventNameHash + tsSum + element['@channel']) || eventRedis != null) {
+        if (mapEvent.has(eventNameHash + tsSum + element['@channel'])) {
           sql = 'INSERT INTO event_category(channel_event_name, category_name) VALUE (' + mysql.escape(eventName) + ', ' + mysql.escape(l) + ');'
           mapEventCategory.set(eventNameHash + tmp, eventNameHash + tmp)
           await db.query(sql)
